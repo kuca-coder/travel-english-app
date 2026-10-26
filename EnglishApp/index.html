@@ -1,0 +1,322 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>旅する英会話</title>
+  <style>
+    body {
+      font-family: -apple-system, sans-serif;
+      background: #f5f7fa;
+      color: #263238;
+      margin: 0;
+      padding: 24px 16px;
+      text-align: center;
+    }
+
+    main {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    h1 { font-size: 28px; }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 26px 20px;
+      margin-top: 24px;
+      box-shadow: 0 4px 16px #0000000d;
+    }
+
+    .label {
+      color: #607d8b;
+      font-size: 14px;
+    }
+
+    #japanese {
+      font-size: 24px;
+      margin: 14px 0;
+    }
+
+    #english {
+      font-size: 30px;
+      font-weight: bold;
+      margin: 22px 0;
+    }
+
+    #status {
+      background: #edf4f7;
+      padding: 16px 10px;
+      border-radius: 12px;
+      margin: 20px 0;
+      font-size: 17px;
+      line-height: 1.6;
+      min-height: 48px;
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      margin: 7px 0;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      background: #176b87;
+      color: white;
+    }
+
+    button.secondary {
+      background: #e6eef2;
+      color: #263238;
+    }
+
+    .navigation {
+      display: flex;
+      gap: 12px;
+    }
+
+    .navigation button { flex: 1; }
+
+    #progress {
+      color: #607d8b;
+      margin-top: 18px;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>✈️ 旅する英会話</h1>
+    <p>聞いて、まねして、話してみよう！</p>
+
+    <section class="card">
+      <p class="label">日本語の意味</p>
+      <div id="japanese">こんにちは</div>
+
+      <p class="label">英語</p>
+      <div id="english">Hello.</div>
+
+      <div id="status" aria-live="polite">
+        スタートボタンを押して練習しましょう！
+      </div>
+
+      <button onclick="startPractice()">
+        ▶ シャドーイング練習スタート
+      </button>
+
+      <button class="secondary" onclick="stopPractice()">
+        ■ 停止
+      </button>
+
+      <button class="secondary" onclick="speakEnglish()">
+        🔊 英語をもう一度聞く
+      </button>
+
+      <div class="navigation">
+        <button class="secondary" onclick="move(-1)">← 前へ</button>
+        <button class="secondary" onclick="move(1)">次へ →</button>
+      </div>
+
+      <div id="progress">1 / 10</div>
+    </section>
+  </main>
+
+  <script>
+    const lessons = [
+      ["こんにちは", "Hello."],
+      ["ありがとうございます", "Thank you."],
+      ["すみません", "Excuse me."],
+      ["これをください", "This one, please."],
+      ["いくらですか？", "How much is it?"],
+      ["トイレはどこですか？", "Where is the restroom?"],
+    ];
+
+    let current = 0;
+    let isPracticing = false;
+    let practiceTimer = null;
+    let runId = 0;
+
+    // 発音練習のための無音時間（ミリ秒）
+    const PRACTICE_TIME = 4000;
+
+    function updateScreen() {
+      document.getElementById("japanese").textContent =
+        lessons[current][0];
+
+      document.getElementById("english").textContent =
+        lessons[current][1];
+
+      document.getElementById("progress").textContent =
+        (current + 1) + " / " + lessons.length;
+    }
+
+
+function speak(text, language, onEnd) {
+  speechSynthesis.cancel();
+
+  // 英語の場合は、保存した音声ファイルを再生する
+  if (language === "en-US") {
+const audioFiles = {
+  "Hello.": "audio/hello.mp3",
+  "Thank you.": "audio/thank_you.mp3",
+  "Excuse me.": "audio/excuse_me.mp3",
+  "This one, please.": "audio/this_one_please.mp3",
+  "How much is it?": "audio/how_much_is_it.mp3",
+  "Where is the restroom?": "audio/where_is_the_restroom.mp3",
+};
+
+const audioFile = audioFiles[text];
+
+if (!audioFile) {
+  document.getElementById("status").textContent =
+    "このレッスンの英語音声はまだ用意されていません。";
+  return;
+}
+
+const audio = new Audio(audioFile);
+    
+
+    audio.onended = () => {
+      if (onEnd) onEnd();
+    };
+
+    audio.onerror = () => {
+      document.getElementById("status").textContent =
+        "英語音声を再生できませんでした。";
+      isPracticing = false;
+    };
+
+    audio.play().catch(() => {
+      document.getElementById("status").textContent =
+        "英語音声を再生できませんでした。";
+      isPracticing = false;
+    });
+
+    return;
+  }
+
+  // 日本語は、これまでどおりブラウザで読み上げる
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = language;
+  utterance.rate = 0.8;
+
+  utterance.onend = () => {
+    if (onEnd) onEnd();
+  };
+
+  utterance.onerror = () => {
+    document.getElementById("status").textContent =
+      "音声を再生できませんでした。もう一度お試しください。";
+    isPracticing = false;
+  };
+
+  speechSynthesis.speak(utterance);
+}
+
+
+    function startPractice() {
+      stopPractice();
+
+      isPracticing = true;
+      runId++;
+      playLesson(runId);
+    }
+
+function playLesson(id) {
+  if (!isPracticing || id !== runId) return;
+
+  if (current >= lessons.length) {
+    isPracticing = false;
+    document.getElementById("status").textContent =
+      "🎉 全レッスン終了！お疲れさまでした。";
+    return;
+  }
+
+  updateScreen();
+
+  // ① 日本語のお手本
+  document.getElementById("status").textContent =
+    "① 日本語を聞いています…";
+
+  speak(lessons[current][0], "ja-JP", () => {
+    if (!isPracticing || id !== runId) return;
+
+    setTimeout(() => {
+      if (!isPracticing || id !== runId) return;
+
+      // ② 1回目の英語のお手本
+      document.getElementById("status").textContent =
+        "② 英語のお手本を聞いています…";
+
+      speak(lessons[current][1], "en-US", () => {
+        if (!isPracticing || id !== runId) return;
+
+        // ③ 1回目の発話練習
+        document.getElementById("status").textContent =
+          "③ 自分で言ってみよう！（1回目）";
+
+        practiceTimer = setTimeout(() => {
+          if (!isPracticing || id !== runId) return;
+
+          // ④ 2回目の英語のお手本
+          document.getElementById("status").textContent =
+            "④ もう一度、英語のお手本を聞いています…";
+
+          speak(lessons[current][1], "en-US", () => {
+            if (!isPracticing || id !== runId) return;
+
+            // ⑤ 2回目の発話練習
+            document.getElementById("status").textContent =
+              "⑤ もう一度、自分で言ってみよう！";
+
+            practiceTimer = setTimeout(() => {
+              if (!isPracticing || id !== runId) return;
+
+              // ⑥ 次のレッスンへ
+              current++;
+              playLesson(id);
+
+            }, PRACTICE_TIME);
+          });
+
+        }, PRACTICE_TIME);
+      });
+
+    }, 500);
+  });
+}
+
+    function stopPractice() {
+      isPracticing = false;
+      runId++;
+      speechSynthesis.cancel();
+      clearTimeout(practiceTimer);
+
+      document.getElementById("status").textContent =
+        "停止しました。再開するにはスタートを押してください。";
+    }
+
+    function speakEnglish() {
+      stopPractice();
+
+      document.getElementById("status").textContent =
+        "英語を聞いてみましょう。";
+
+      speak(lessons[current][1], "en-US");
+    }
+
+    function move(direction) {
+      stopPractice();
+
+      current = (current + direction + lessons.length) % lessons.length;
+      updateScreen();
+
+      document.getElementById("status").textContent =
+        "準備できました。スタートを押して練習しましょう！";
+    }
+  </script>
+</body>
+</html>
