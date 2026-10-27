@@ -142,10 +142,6 @@
     // 発音練習のための無音時間（ミリ秒）
     const PRACTICE_TIME = 4000;
 
-    // 英語音声は毎回新しく作らず、同じプレーヤーを使い回す
-    const englishAudio = new Audio();
-    englishAudio.preload = "auto";
-
 
     function updateScreen() {
       document.getElementById("japanese").textContent =
@@ -160,70 +156,25 @@
 
 
 function speak(text, language, onEnd) {
+  // 前の読み上げを止めてから、新しい音声を再生する
   speechSynthesis.cancel();
 
-  // 英語の場合は、保存した音声ファイルを共通プレーヤーで再生する
-  if (language === "en-US") {
-    const audioFiles = {
-      "Hello.": "audio/hello.mp3",
-      "Thank you.": "audio/thank_you.mp3",
-      "Excuse me.": "audio/excuse_me.mp3",
-      "This one, please.": "audio/this_one_please.mp3",
-      "How much is it?": "audio/how_much_is_it.mp3",
-      "Where is the restroom?": "audio/where_is_the_restroom.mp3",
-    };
-
-    const audioFile = audioFiles[text];
-
-    if (!audioFile) {
-      document.getElementById("status").textContent =
-        "このレッスンの英語音声はまだ用意されていません。";
-      return;
-    }
-
-    // 前の音声を止めて、同じプレーヤーを使う
-    englishAudio.pause();
-    englishAudio.onended = null;
-    englishAudio.onerror = null;
-    englishAudio.currentTime = 0;
-    englishAudio.src = audioFile;
-    englishAudio.load();
-
-    englishAudio.onended = () => {
-      if (onEnd) onEnd();
-    };
-
-    englishAudio.onerror = () => {
-      const detail = englishAudio.error
-        ? `エラーコード: ${englishAudio.error.code}`
-        : "原因を特定できませんでした";
-
-      document.getElementById("status").textContent =
-        `英語音声を再生できませんでした（${detail}）。`;
-      isPracticing = false;
-    };
-
-    englishAudio.play().catch((error) => {
-      document.getElementById("status").textContent =
-        `英語音声を再生できませんでした（${error.name}）。`;
-      isPracticing = false;
-    });
-
-    return;
-  }
-
-  // 日本語は、これまでどおりブラウザで読み上げる
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = language;
+
+  // 少しゆっくり読み上げる（必要に応じて後から調整できます）
   utterance.rate = 0.8;
 
   utterance.onend = () => {
     if (onEnd) onEnd();
   };
 
-  utterance.onerror = () => {
+  utterance.onerror = (event) => {
+    // cancel による中断はエラー表示しない
+    if (event.error === "canceled" || event.error === "interrupted") return;
+
     document.getElementById("status").textContent =
-      "音声を再生できませんでした。もう一度お試しください。";
+      "音声を再生できませんでした。もう一度スタートを押してください。";
     isPracticing = false;
   };
 
@@ -308,11 +259,6 @@ function playLesson(id) {
       runId++;
       speechSynthesis.cancel();
       clearTimeout(practiceTimer);
-
-      // 再生中の英語音声も停止する
-      englishAudio.pause();
-      englishAudio.currentTime = 0;
-      englishAudio.onended = null;
 
       document.getElementById("status").textContent =
         "停止しました。再開するにはスタートを押してください。";
