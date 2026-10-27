@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -336,5 +337,17 @@ function playLesson(id) {
         "準備できました。スタートを押して練習しましょう！";
     }
   </script>
+
+  <script>
+    // 音声やページを事前に保存する Service Worker を登録
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch((error) => {
+          console.error("オフライン用データの登録に失敗しました:", error);
+        });
+      });
+    }
+  </script>
+
 </body>
 </html>
