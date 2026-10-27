@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>日本語音声テスト</title>
+</head>
+<body>
+  <h1>日本語音声テスト</h1>
+  <button onclick="testJapanese()">日本語を再生</button>
+  <p id="status">ボタンを押してください。</p>
+
+  <script>
+    function testJapanese() {
+      speechSynthesis.cancel();
+
+      const utterance =
+        new SpeechSynthesisUtterance("こんにちは。ありがとうございます。");
+
+      utterance.lang = "ja-JP";
+      utterance.rate = 0.8;
+
+      utterance.onstart = () => {
+        document.getElementById("status").textContent =
+          "読み上げ開始";
+      };
+
+      utterance.onend = () => {
+        document.getElementById("status").textContent =
+          "読み上げ終了";
+      };
+
+      utterance.onerror = (event) => {
+        document.getElementById("status").textContent =
+          "エラー：" + event.error;
+      };
+
+      speechSynthesis.speak(utterance);
+
+      document.getElementById("status").textContent =
+        "読み上げを要求しました。";
+    }
+  </script>
+</body>
+</html>
