@@ -141,6 +141,11 @@
     // 発音練習のための無音時間（ミリ秒）
     const PRACTICE_TIME = 4000;
 
+    // 英語音声は毎回新しく作らず、同じプレーヤーを使い回す
+    const englishAudio = new Audio();
+    englishAudio.preload = "auto";
+
+
     function updateScreen() {
       document.getElementById("japanese").textContent =
         lessons[current][0];
@@ -156,52 +161,55 @@
 function speak(text, language, onEnd) {
   speechSynthesis.cancel();
 
-  // 英語の場合は、保存した音声ファイルを再生する
+  // 英語の場合は、保存した音声ファイルを共通プレーヤーで再生する
   if (language === "en-US") {
-const audioFiles = {
-  "Hello.": "audio/hello.mp3",
-  "Thank you.": "audio/thank_you.mp3",
-  "Excuse me.": "audio/excuse_me.mp3",
-  "This one, please.": "audio/this_one_please.mp3",
-  "How much is it?": "audio/how_much_is_it.mp3",
-  "Where is the restroom?": "audio/where_is_the_restroom.mp3",
-};
+    const audioFiles = {
+      "Hello.": "audio/hello.mp3",
+      "Thank you.": "audio/thank_you.mp3",
+      "Excuse me.": "audio/excuse_me.mp3",
+      "This one, please.": "audio/this_one_please.mp3",
+      "How much is it?": "audio/how_much_is_it.mp3",
+      "Where is the restroom?": "audio/where_is_the_restroom.mp3",
+    };
 
-const audioFile = audioFiles[text];
+    const audioFile = audioFiles[text];
 
-if (!audioFile) {
-  document.getElementById("status").textContent =
-    "このレッスンの英語音声はまだ用意されていません。";
-  return;
-}
+    if (!audioFile) {
+      document.getElementById("status").textContent =
+        "このレッスンの英語音声はまだ用意されていません。";
+      return;
+    }
 
-const audio = new Audio();
-audio.preload = "auto";
-audio.src = audioFile;
+    // 前の音声を止めて、同じプレーヤーを使う
+    englishAudio.pause();
+    englishAudio.onended = null;
+    englishAudio.onerror = null;
+    englishAudio.currentTime = 0;
+    englishAudio.src = audioFile;
+    englishAudio.load();
 
-audio.onended = () => {
-  if (onEnd) onEnd();
-};
+    englishAudio.onended = () => {
+      if (onEnd) onEnd();
+    };
 
-audio.onerror = () => {
-  const detail = audio.error
-    ? `エラーコード: ${audio.error.code}`
-    : "原因を特定できませんでした";
+    englishAudio.onerror = () => {
+      const detail = englishAudio.error
+        ? `エラーコード: ${englishAudio.error.code}`
+        : "原因を特定できませんでした";
 
-  document.getElementById("status").textContent =
-    `英語音声を再生できませんでした（${detail}）。`;
-  isPracticing = false;
-};
+      document.getElementById("status").textContent =
+        `英語音声を再生できませんでした（${detail}）。`;
+      isPracticing = false;
+    };
 
-audio.play().catch((error) => {
-  document.getElementById("status").textContent =
-    `英語音声を再生できませんでした（${error.name}）。`;
-  isPracticing = false;
-});
+    englishAudio.play().catch((error) => {
+      document.getElementById("status").textContent =
+        `英語音声を再生できませんでした（${error.name}）。`;
+      isPracticing = false;
+    });
 
-return;
-}
-
+    return;
+  }
 
   // 日本語は、これまでどおりブラウザで読み上げる
   const utterance = new SpeechSynthesisUtterance(text);
@@ -299,6 +307,11 @@ function playLesson(id) {
       runId++;
       speechSynthesis.cancel();
       clearTimeout(practiceTimer);
+
+      // 再生中の英語音声も停止する
+      englishAudio.pause();
+      englishAudio.currentTime = 0;
+      englishAudio.onended = null;
 
       document.getElementById("status").textContent =
         "停止しました。再開するにはスタートを押してください。";
