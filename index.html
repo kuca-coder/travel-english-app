@@ -1,299 +1,335 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#176b87">
   <title>旅する英会話</title>
   <style>
-    body {
-      font-family: -apple-system, sans-serif;
-      background: #f5f7fa;
-      color: #263238;
-      margin: 0;
-      padding: 24px 16px;
-      text-align: center;
-    }
-
-    main {
-      max-width: 480px;
-      margin: 0 auto;
-    }
-
-    h1 { font-size: 28px; }
-
-    .card {
-      background: white;
-      border-radius: 20px;
-      padding: 26px 20px;
-      margin-top: 24px;
-      box-shadow: 0 4px 16px #0000000d;
-    }
-
-    .label {
-      color: #607d8b;
-      font-size: 14px;
-    }
-
-    #japanese {
-      font-size: 24px;
-      margin: 14px 0;
-    }
-
-    #english {
-      font-size: 30px;
-      font-weight: bold;
-      margin: 22px 0;
-    }
-
-    #status {
-      background: #edf4f7;
-      padding: 16px 10px;
-      border-radius: 12px;
-      margin: 20px 0;
-      font-size: 17px;
-      line-height: 1.6;
-      min-height: 48px;
-    }
-
-    button {
-      width: 100%;
-      padding: 16px;
-      margin: 7px 0;
-      border: none;
-      border-radius: 12px;
-      font-size: 18px;
-      cursor: pointer;
-      background: #176b87;
-      color: white;
-    }
-
-    button.secondary {
-      background: #e6eef2;
-      color: #263238;
-    }
-
-    .navigation {
-      display: flex;
-      gap: 12px;
-    }
-
-    .navigation button { flex: 1; }
-
-    #progress {
-      color: #607d8b;
-      margin-top: 18px;
-    }
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", sans-serif; background:#f5f7fa; color:#263238; margin:0; padding:22px 14px 40px; }
+    main { max-width:520px; margin:0 auto; }
+    h1 { font-size:27px; margin:8px 0; text-align:center; }
+    .intro { text-align:center; margin:0 0 22px; color:#52656d; }
+    .panel { background:white; border-radius:18px; padding:20px 17px; margin:14px 0; box-shadow:0 4px 16px #0000000d; }
+    h2 { font-size:19px; margin:0 0 12px; }
+    .category-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    button { font:inherit; border:0; border-radius:12px; padding:14px 12px; cursor:pointer; background:#176b87; color:white; min-height:48px; }
+    button.secondary { background:#e6eef2; color:#263238; }
+    button.category { min-height:84px; font-weight:600; line-height:1.45; }
+    button.category small { display:block; font-size:12px; font-weight:400; margin-top:5px; }
+    button.category.selected { outline:3px solid #80bdcf; outline-offset:1px; }
+    .mode-row { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+    .mode-row button { font-size:15px; }
+    .mode-row button.selected { background:#124d62; outline:3px solid #a5d5e1; }
+    .label { color:#607d8b; font-size:13px; margin:12px 0 5px; }
+    #japanese { font-size:22px; line-height:1.55; }
+    #english { font-size:27px; font-weight:700; line-height:1.45; overflow-wrap:anywhere; margin:12px 0 20px; }
+    #status { background:#edf4f7; padding:13px 10px; border-radius:12px; margin:16px 0; font-size:15px; line-height:1.6; min-height:48px; }
+    .actions { display:grid; gap:8px; }
+    .nav { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    #progress { color:#607d8b; text-align:center; margin-top:15px; font-size:14px; }
+    .note { font-size:13px; line-height:1.6; color:#607d8b; }
+    @media (max-width:360px) { #english { font-size:23px; } .panel { padding:17px 13px; } }
   </style>
 </head>
-
 <body>
-  <main>
-    <h1>✈️ 旅する英会話</h1>
-    <p>聞いて、まねして、話してみよう！</p>
+<main>
+  <h1>✈️ 旅する英会話</h1>
+  <p class="intro">聞いて、まねして、話してみよう！</p>
 
-    <section class="card">
-      <p class="label">日本語の意味</p>
-      <div id="japanese">こんにちは</div>
+  <section class="panel">
+    <h2>① 練習する場面を選ぶ</h2>
+    <div class="category-grid" id="categoryButtons">
+      <button class="category selected" data-category="airport">✈️ 空港・飛行機<small>チェックイン・機内など</small></button>
+      <button class="category" data-category="town">🗺️ 街で使う英語<small>買い物・食事・観光</small></button>
+      <button class="category" data-category="chat">💬 雑談・自己紹介<small>挨拶・簡単な会話</small></button>
+      <button class="category" data-category="help">🆘 困ったとき<small>聞き返し・体調など</small></button>
+    </div>
+  </section>
 
-      <p class="label">英語</p>
-      <div id="english">Hello.</div>
+  <section class="panel">
+    <h2>② 練習方法を選ぶ</h2>
+    <div class="mode-row">
+      <button id="phraseMode" class="selected">📣 フレーズ練習</button>
+      <button id="listenMode" class="secondary">🎧 通し聞き</button>
+    </div>
+    <p class="note" id="modeDescription">選んだセクションのフレーズを、日本語・英語・発話時間を使って練習します。</p>
+    <p class="note" id="listenDescription">通し聞きでは4セクションすべてを順番に再生します。発話時間を入れるか選べます。</p>
+    <label id="pauseLabel" class="note"><input type="checkbox" id="shadowPause" checked> 通し聞きでも英語のあとに4秒の発話時間を入れる</label>
+  </section>
 
-      <div id="status" aria-live="polite">
-        スタートボタンを押して練習しましょう！
-      </div>
+  <section class="panel">
+    <p class="label" id="categoryLabel">空港・飛行機</p>
+    <p class="label">日本語の意味</p>
+    <div id="japanese">チェックインをしたいです。</div>
+    <p class="label">英語のお手本</p>
+    <div id="english">I'd like to check in.</div>
+    <div class="actions">
+      <button id="startButton">▶ このセクションを練習</button>
+      <button id="stopButton" class="secondary">■ 停止</button>
+      <button id="replayButton" class="secondary">🔊 英語をもう一度聞く</button>
+      <div class="nav"><button id="prevButton" class="secondary">← 前へ</button><button id="nextButton" class="secondary">次へ →</button></div>
+    </div>
+    <div id="status" aria-live="polite">カテゴリと練習方法を選んで、スタートしましょう。</div>
+    <div id="progress">1 / 10</div>
+  </section>
+  <p class="note">音声はブラウザの読み上げ機能（speechSynthesis）を使います。MP3ファイルは必要ありません。iPhoneでは、最初にスタートボタンを押して音声が出ることを確認してください。</p>
+</main>
+<script>
+const lessons = {
+  airport: [
+    {ja:"チェックインをしたいです。", en:"I'd like to check in."},
+    {ja:"私のパスポートです。", en:"Here's my passport."},
+    {ja:"窓側の席でお願いします。", en:"I'd like a window seat."},
+    {ja:"荷物を預けたいです。", en:"I'd like to check this bag."},
+    {ja:"これは機内に持ち込めますか？", en:"Can I take this on the plane?"},
+    {ja:"保安検査場はどこですか？", en:"Where is security?"},
+    {ja:"搭乗ゲートはどこですか？", en:"Where is my gate?"},
+    {ja:"何時に搭乗が始まりますか？", en:"What time does boarding start?"},
+    {ja:"お水をいただけますか？", en:"Can I have some water?"},
+    {ja:"荷物はどこで受け取れますか？", en:"Where can I get my bags?"}
+  ],
+  town: [
+    {ja:"いくらですか？", en:"How much is it?"},
+    {ja:"カードは使えますか？", en:"Can I pay by card?"},
+    {ja:"これをください。", en:"I'll take this."},
+    {ja:"袋をいただけますか？", en:"Can I have a bag?"},
+    {ja:"メニューをいただけますか？", en:"May I have the menu, please?"},
+    {ja:"何かおすすめはありますか？", en:"What do you recommend?"},
+    {ja:"お会計をお願いします。", en:"May I have the check, please?"},
+    {ja:"今晩宿泊を予約しています。", en:"I have a reservation for tonight."},
+    {ja:"写真を撮ってもらえますか？", en:"Could you take a picture of us?"},
+    {ja:"チケットはどこで買えますか？", en:"Where can I buy a ticket?"}
+  ],
+  chat: [
+    {ja:"こんにちは。", en:"Hello."},
+    {ja:"私はユミです。", en:"I'm Yumi."},
+    {ja:"出身はどちらですか？", en:"Where are you from?"},
+    {ja:"京都出身です。", en:"I'm from Kyoto."},
+    {ja:"お会いできて嬉しいです。", en:"Nice to meet you."},
+    {ja:"今日はいい天気ですね。", en:"The weather is nice today."},
+    {ja:"それは面白いですね。", en:"That's interesting."},
+    {ja:"本当ですか？", en:"Really?"},
+    {ja:"いいですね！", en:"Sounds good."},
+    {ja:"どういたしまして。", en:"You're welcome."}
+  ],
+  help: [
+    {ja:"もう一度言ってもらえますか？", en:"Could you say that again?"},
+    {ja:"もう少しゆっくり話していただけますか？", en:"Could you speak more slowly?"},
+    {ja:"分かりません。", en:"I don't understand."},
+    {ja:"英語があまり話せません。", en:"I don't speak much English."},
+    {ja:"日本語を話せる人はいますか？", en:"Does anyone speak Japanese?"},
+    {ja:"助けてもらえますか？", en:"Can you help me?"},
+    {ja:"体調が悪いです。", en:"I'm not feeling well."},
+    {ja:"薬局はどこですか？", en:"Where is the pharmacy?"},
+    {ja:"携帯電話をなくしました。", en:"I've lost my phone."},
+    {ja:"どういう意味ですか？", en:"What does that mean?"}
+  ]
+};
 
-      <button onclick="startPractice()">
-        ▶ シャドーイング練習スタート
-      </button>
+const categoryNames = {airport:"空港・飛行機", town:"街で使う英語", chat:"雑談・自己紹介", help:"困ったとき"};
+const categoryOrder = ["airport", "town", "chat", "help"];
+const PRACTICE_TIME = 4000;
+const BETWEEN_LANGUAGE_TIME = 500;
+const $ = id => document.getElementById(id);
+let category = "airport";
+let mode = "phrase"; // phrase = 1セクションの発話練習、listen = 4セクション通し聞き
+let current = 0;
+let isPlaying = false;
+let runId = 0;
+let practiceTimer = null;
+let allMode = false;
+let allCategoryIndex = 0;
 
-      <button class="secondary" onclick="stopPractice()">
-        ■ 停止
-      </button>
-
-      <button class="secondary" onclick="speakEnglish()">
-        🔊 英語をもう一度聞く
-      </button>
-
-      <div class="navigation">
-        <button class="secondary" onclick="move(-1)">← 前へ</button>
-        <button class="secondary" onclick="move(1)">次へ →</button>
-      </div>
-
-      <div id="progress">1 / 10</div>
-    </section>
-  </main>
-
-  <script>
-    const lessons = [
-      ["こんにちは", "Hello."],
-      ["ありがとうございます", "Thank you."],
-      ["すみません", "Excuse me."],
-      ["これをください", "This one, please."],
-      ["いくらですか？", "How much is it?"],
-      ["トイレはどこですか？", "Where is the restroom?"],
-    ];
-
-    let current = 0;
-    let isPracticing = false;
-    let practiceTimer = null;
-    let runId = 0;
-
-    // 発音練習のための無音時間（ミリ秒）
-    const PRACTICE_TIME = 4000;
-
-
-    function updateScreen() {
-      document.getElementById("japanese").textContent =
-        lessons[current][0];
-
-      document.getElementById("english").textContent =
-        lessons[current][1];
-
-      document.getElementById("progress").textContent =
-        (current + 1) + " / " + lessons.length;
-    }
-
-
-function speak(text, language, onEnd) {
-  // 前の読み上げを止めてから、新しい音声を再生する
-  speechSynthesis.cancel();
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = language;
-
-  // 少しゆっくり読み上げる（必要に応じて後から調整できます）
-  utterance.rate = 0.8;
-
-  utterance.onend = () => {
-    if (onEnd) onEnd();
-  };
-
-  utterance.onerror = (event) => {
-    // cancel による中断はエラー表示しない
-    if (event.error === "canceled" || event.error === "interrupted") return;
-
-    document.getElementById("status").textContent =
-      "音声を再生できませんでした。もう一度スタートを押してください。";
-    isPracticing = false;
-  };
-
-  speechSynthesis.speak(utterance);
+function currentList() { return lessons[category]; }
+function stopAudio() {
+  clearTimeout(practiceTimer);
+  if (window.speechSynthesis) speechSynthesis.cancel();
 }
-
-
-    function startPractice() {
-      stopPractice();
-
-      isPracticing = true;
-      runId++;
-      playLesson(runId);
-    }
-
-function playLesson(id) {
-  if (!isPracticing || id !== runId) return;
-
-  if (current >= lessons.length) {
-    isPracticing = false;
-    document.getElementById("status").textContent =
-      "🎉 全レッスン終了！お疲れさまでした。";
+function speak(text, language, onEnd) {
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
+    $("status").textContent = "このブラウザでは音声読み上げを利用できません。";
+    isPlaying = false;
     return;
   }
-
+  // 古い音声を止めてから、新しい音声を再生します。
+  speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = language;
+  utterance.rate = 0.82;
+  utterance.onend = () => { if (onEnd) onEnd(); };
+  utterance.onerror = (event) => {
+    if (isPlaying) {
+      isPlaying = false;
+      $("status").textContent = "音声を再生できませんでした。もう一度スタートしてください。";
+    }
+  };
+  speechSynthesis.speak(utterance);
+}
+function updateScreen() {
+  const list = currentList();
+  current = Math.max(0, Math.min(current, list.length - 1));
+  const item = list[current];
+  $("japanese").textContent = item.ja;
+  $("english").textContent = item.en;
+  $("categoryLabel").textContent = categoryNames[category];
+  $("progress").textContent = `${current + 1} / ${list.length}　｜　${categoryNames[category]}`;
+}
+function stopPractice(showMessage = true) {
+  isPlaying = false;
+  allMode = false;
+  runId++;
+  stopAudio();
+  if (showMessage) $("status").textContent = "停止しました。再開するにはスタートを押してください。";
+}
+function startPractice() {
+  if (mode === "listen") { startAllListening(); return; }
+  stopPractice(false);
+  mode = "phrase";
+  setModeButtons();
+  current = 0;
+  allMode = false;
+  isPlaying = true;
+  const id = ++runId;
   updateScreen();
-
-  // ① 日本語のお手本
-  document.getElementById("status").textContent =
-    "① 日本語を聞いています…";
-
-  speak(lessons[current][0], "ja-JP", () => {
-    if (!isPracticing || id !== runId) return;
-
-    setTimeout(() => {
-      if (!isPracticing || id !== runId) return;
-
-      // ② 1回目の英語のお手本
-      document.getElementById("status").textContent =
-        "② 英語のお手本を聞いています…";
-
-      speak(lessons[current][1], "en-US", () => {
-        if (!isPracticing || id !== runId) return;
-
-        // ③ 1回目の発話練習
-        document.getElementById("status").textContent =
-          "③ 自分で言ってみよう！（1回目）";
-
+  playPhrase(id);
+}
+function playPhrase(id) {
+  if (!isPlaying || id !== runId) return;
+  const list = currentList();
+  if (current >= list.length) {
+    isPlaying = false;
+    $("status").textContent = "🎉 このセクションは終了です！";
+    return;
+  }
+  const item = list[current];
+  updateScreen();
+  $("status").textContent = "① 日本語を聞いています…";
+  speak(item.ja, "ja-JP", () => {
+    if (!isPlaying || id !== runId) return;
+    practiceTimer = setTimeout(() => {
+      if (!isPlaying || id !== runId) return;
+      $("status").textContent = "② 英語のお手本を聞いています…";
+      speak(item.en, "en-US", () => {
+        if (!isPlaying || id !== runId) return;
+        $("status").textContent = "③ 自分で言ってみよう！（4秒）";
         practiceTimer = setTimeout(() => {
-          if (!isPracticing || id !== runId) return;
-
-          // ④ 2回目の英語のお手本
-          document.getElementById("status").textContent =
-            "④ もう一度、英語のお手本を聞いています…";
-
-          speak(lessons[current][1], "en-US", () => {
-            if (!isPracticing || id !== runId) return;
-
-            // ⑤ 2回目の発話練習
-            document.getElementById("status").textContent =
-              "⑤ もう一度、自分で言ってみよう！";
-
+          if (!isPlaying || id !== runId) return;
+          $("status").textContent = "④ もう一度、英語のお手本を聞いています…";
+          speak(item.en, "en-US", () => {
+            if (!isPlaying || id !== runId) return;
+            $("status").textContent = "⑤ もう一度、自分で言ってみよう！（4秒）";
             practiceTimer = setTimeout(() => {
-              if (!isPracticing || id !== runId) return;
-
-              // ⑥ 次のレッスンへ
+              if (!isPlaying || id !== runId) return;
               current++;
-              playLesson(id);
-
+              if (current >= list.length) {
+                isPlaying = false;
+                $("status").textContent = "🎉 このセクションは終了です！";
+                return;
+              }
+              playPhrase(id);
             }, PRACTICE_TIME);
           });
-
         }, PRACTICE_TIME);
       });
-
-    }, 500);
+    }, BETWEEN_LANGUAGE_TIME);
   });
 }
-
-    function stopPractice() {
-      isPracticing = false;
-      runId++;
-      speechSynthesis.cancel();
-      clearTimeout(practiceTimer);
-
-      document.getElementById("status").textContent =
-        "停止しました。再開するにはスタートを押してください。";
-    }
-
-    function speakEnglish() {
-      stopPractice();
-
-      document.getElementById("status").textContent =
-        "英語を聞いてみましょう。";
-
-      speak(lessons[current][1], "en-US");
-    }
-
-    function move(direction) {
-      stopPractice();
-
-      current = (current + direction + lessons.length) % lessons.length;
-      updateScreen();
-
-      document.getElementById("status").textContent =
-        "準備できました。スタートを押して練習しましょう！";
-    }
-  </script>
-
-  <script>
-    // 音声やページを事前に保存する Service Worker を登録
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js").catch((error) => {
-          console.error("オフライン用データの登録に失敗しました:", error);
-        });
+function startAllListening() {
+  stopPractice(false);
+  mode = "listen";
+  setModeButtons();
+  allMode = true;
+  isPlaying = true;
+  allCategoryIndex = 0;
+  current = 0;
+  const id = ++runId;
+  playAllItem(id);
+}
+function playAllItem(id) {
+  if (!isPlaying || id !== runId || !allMode) return;
+  if (allCategoryIndex >= categoryOrder.length) {
+    isPlaying = false;
+    allMode = false;
+    $("status").textContent = "🎉 4セクションすべて終了しました！お疲れさまでした。";
+    $("progress").textContent = "全4セクション終了";
+    return;
+  }
+  category = categoryOrder[allCategoryIndex];
+  const list = lessons[category];
+  if (current >= list.length) {
+    allCategoryIndex++;
+    current = 0;
+    playAllItem(id);
+    return;
+  }
+  const item = list[current];
+  document.querySelectorAll("[data-category]").forEach(b => b.classList.toggle("selected", b.dataset.category === category));
+  updateScreen();
+  $("status").textContent = `通し聞き中：${categoryNames[category]}（日本語）`;
+  speak(item.ja, "ja-JP", () => {
+    if (!isPlaying || id !== runId) return;
+    practiceTimer = setTimeout(() => {
+      if (!isPlaying || id !== runId) return;
+      $("status").textContent = `通し聞き中：${categoryNames[category]}（英語）`;
+      speak(item.en, "en-US", () => {
+        if (!isPlaying || id !== runId) return;
+        const wait = $("shadowPause").checked ? PRACTICE_TIME : 350;
+        $("status").textContent = $("shadowPause").checked ? "英語をまねして言ってみましょう！（4秒）" : "次のフレーズへ…";
+        practiceTimer = setTimeout(() => {
+          if (!isPlaying || id !== runId) return;
+          current++;
+          playAllItem(id);
+        }, wait);
       });
-    }
-  </script>
-
+    }, BETWEEN_LANGUAGE_TIME);
+  });
+}
+function replayEnglish() {
+  stopPractice(false);
+  const item = currentList()[current];
+  $("status").textContent = "英語を聞いてみましょう。";
+  speak(item.en, "en-US");
+}
+function move(direction) {
+  stopPractice(false);
+  const list = currentList();
+  current = (current + direction + list.length) % list.length;
+  updateScreen();
+  $("status").textContent = "準備できました。スタートを押して練習しましょう！";
+}
+function setModeButtons() {
+  $("phraseMode").classList.toggle("selected", mode === "phrase");
+  $("phraseMode").classList.toggle("secondary", mode !== "phrase");
+  $("listenMode").classList.toggle("selected", mode === "listen");
+  $("listenMode").classList.toggle("secondary", mode !== "listen");
+  $("modeDescription").textContent = mode === "phrase"
+    ? "選んだセクションのフレーズを、日本語 → 英語 → 4秒の発話時間 → 英語 → 4秒の発話時間、の順に練習します。"
+    : "スタートすると4セクションすべてを順番に連続再生します。下のチェックで発話時間の有無を選べます。";
+  $("startButton").textContent = mode === "phrase" ? "▶ このセクションを練習" : "▶ 4セクションを通しで再生";
+}
+document.querySelectorAll("[data-category]").forEach(button => button.addEventListener("click", () => {
+  stopPractice(false);
+  category = button.dataset.category;
+  current = 0;
+  document.querySelectorAll("[data-category]").forEach(b => b.classList.toggle("selected", b === button));
+  updateScreen();
+  $("status").textContent = `${categoryNames[category]}を選びました。練習を始めましょう！`;
+}));
+$("phraseMode").addEventListener("click", () => {
+  stopPractice(false); mode = "phrase"; setModeButtons(); updateScreen();
+});
+$("listenMode").addEventListener("click", () => {
+  stopPractice(false); mode = "listen"; setModeButtons(); updateScreen();
+});
+$("startButton").addEventListener("click", startPractice);
+$("stopButton").addEventListener("click", () => stopPractice(true));
+$("replayButton").addEventListener("click", replayEnglish);
+$("prevButton").addEventListener("click", () => move(-1));
+$("nextButton").addEventListener("click", () => move(1));
+updateScreen();
+</script>
 </body>
 </html>
