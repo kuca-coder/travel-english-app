@@ -1284,6 +1284,8 @@ let practiceTimer = null;
 let allMode = false;
 let allCategoryIndex = 0;
 let allListenType = "phrases";
+let sectionFinished = false;
+let allListeningFinished = false;
 
 function currentList() {
   if (mode === "word") return lessons[category].words || [];
@@ -1292,6 +1294,7 @@ function currentList() {
 }
 function stopAudio() {
   clearTimeout(practiceTimer);
+  practiceTimer = null;
   if (window.speechSynthesis) speechSynthesis.cancel();
 }
 function speak(text, language, onEnd) {
@@ -1300,13 +1303,17 @@ function speak(text, language, onEnd) {
     isPlaying = false;
     return;
   }
-  speechSynthesis.cancel();
+  const idAtStart = runId;
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = language;
   utterance.rate = 0.82;
-  utterance.onend = () => { if (onEnd) onEnd(); };
+  utterance.onend = () => {
+    // 再生世代が変わっていなければ完了処理を呼ぶ。
+    // 通常練習の続行可否は各再生関数側で isPlaying と runId を確認する。
+    if (idAtStart === runId && onEnd) onEnd();
+  };
   utterance.onerror = () => {
-    if (isPlaying) {
+    if (idAtStart === runId && isPlaying) {
       isPlaying = false;
       $("status").textContent = "音声を再生できませんでした。もう一度スタートしてください。";
     }
@@ -1328,9 +1335,24 @@ function updateScreen() {
   $("categoryLabel").textContent = `${categoryNames[category]}｜${modeNames[mode]}`;
   $("progress").textContent = `${current + 1} / ${list.length}　｜　${categoryNames[category]}`;
 }
+function updateAllListeningScreen() {
+  const section = lessons[category];
+  const list = allListenType === "phrases" ? (section.phrases || []) : (section.words || []);
+  const item = list[current];
+  if (!item) return;
+  document.querySelectorAll("[data-category]").forEach(button => {
+    button.classList.toggle("selected", button.dataset.category === category);
+  });
+  $("japanese").textContent = item.ja;
+  $("english").textContent = item.en;
+  $("categoryLabel").textContent =
+    `${categoryNames[category]}｜${allListenType === "phrases" ? "フレーズ" : "単語"}（通し聞き）`;
+  $("progress").textContent =
+    `${current + 1} / ${list.length}　｜　${categoryNames[category]}｜${allListenType === "phrases" ? "フレーズ" : "単語"}`;
+}
 function stopPractice(showMessage = true) {
   isPlaying = false;
-  allMode = false;
+  // 通し聞きの位置情報（カテゴリー・種類・項目番号）は停止しても保持する。
   runId++;
   stopAudio();
   if (showMessage) $("status").textContent = "停止しました。再開するにはスタートを押してください。";
@@ -1338,7 +1360,11 @@ function stopPractice(showMessage = true) {
 function startPractice() {
   if (mode === "listen") { startAllListening(); return; }
   stopPractice(false);
-  current = 0;
+  allMode = false;
+  if (sectionFinished) {
+    current = 0;
+    sectionFinished = false;
+  }
   isPlaying = true;
   const id = ++runId;
   updateScreen();
@@ -1348,6 +1374,7 @@ function startPractice() {
 }
 function finishSection(message = "🎉 このセクションは終了です！") {
   isPlaying = false;
+  sectionFinished = true;
   $("status").textContent = message;
 }
 function playPhrase(id) {
@@ -1466,60 +1493,55 @@ function playConversation(id) {
     }, BETWEEN_LANGUAGE_TIME);
   });
 }
+function normalizeAllListeningPosition() {
+  while (allCategoryIndex < categoryOrder.length) {
+    category = categoryOrder[allCategoryIndex];
+    const section = lessons[category];
+    const list = allListenType === "phrases" ? (section.phrases || []) : (section.words || []);
+    if (current < list.length) return true;
+
+    if (allListenType === "phrases") {
+      allListenType = "words";
+      current = 0;
+    } else {
+      allCategoryIndex++;
+      allListenType = "phrases";
+      current = 0;
+    }
+  }
+  return false;
+}
 function startAllListening() {
   stopPractice(false);
   mode = "listen";
   setModeButtons();
+  if (allListeningFinished) {
+    allCategoryIndex = 0;
+    allListenType = "phrases";
+    current = 0;
+    allListeningFinished = false;
+  }
   allMode = true;
   isPlaying = true;
-  allCategoryIndex = 0;
-  allListenType = "phrases";
-  current = 0;
   const id = ++runId;
   playAllItem(id);
 }
 function playAllItem(id) {
   if (!isPlaying || id !== runId || !allMode) return;
 
-  if (allCategoryIndex >= categoryOrder.length) {
+  if (!normalizeAllListeningPosition()) {
     isPlaying = false;
     allMode = false;
+    allListeningFinished = true;
     $("status").textContent = "🎉 5セクションのフレーズ・単語をすべて再生しました！お疲れさまでした。";
     $("progress").textContent = "全5セクション終了";
     return;
   }
 
-  category = categoryOrder[allCategoryIndex];
   const section = lessons[category];
   const list = allListenType === "phrases" ? (section.phrases || []) : (section.words || []);
-
-  // そのカテゴリーのフレーズが終わったら、同じカテゴリーの単語へ進む。
-  // 単語も終わったら次のカテゴリーへ進む。
-  if (current >= list.length) {
-    if (allListenType === "phrases") {
-      allListenType = "words";
-      current = 0;
-      playAllItem(id);
-      return;
-    }
-    allCategoryIndex++;
-    allListenType = "phrases";
-    current = 0;
-    playAllItem(id);
-    return;
-  }
-
   const item = list[current];
-  document.querySelectorAll("[data-category]").forEach(button => {
-    button.classList.toggle("selected", button.dataset.category === category);
-  });
-
-  $("japanese").textContent = item.ja;
-  $("english").textContent = item.en;
-  $("categoryLabel").textContent =
-    `${categoryNames[category]}｜${allListenType === "phrases" ? "フレーズ" : "単語"}（通し聞き）`;
-  $("progress").textContent =
-    `${current + 1} / ${list.length}　｜　${categoryNames[category]}｜${allListenType === "phrases" ? "フレーズ" : "単語"}`;
+  updateAllListeningScreen();
 
   $("status").textContent =
     `通し聞き中：${categoryNames[category]}の${allListenType === "phrases" ? "フレーズ" : "単語"}（日本語）`;
@@ -1536,7 +1558,6 @@ function playAllItem(id) {
       speak(item.en, "en-US", () => {
         if (!isPlaying || id !== runId) return;
 
-        // フレーズは4秒、単語は2秒の発話時間。チェックを外すと短い間隔で次へ。
         const defaultWait = allListenType === "phrases" ? PRACTICE_TIME : WORD_TIME;
         const wait = $("shadowPause").checked ? defaultWait : 350;
         $("status").textContent = $("shadowPause").checked
@@ -1554,7 +1575,14 @@ function playAllItem(id) {
 }
 function replayEnglish() {
   stopPractice(false);
-  const item = currentList()[current];
+  let item;
+  if (mode === "listen" && allMode) {
+    const section = lessons[category];
+    const list = allListenType === "phrases" ? (section.phrases || []) : (section.words || []);
+    item = list[current];
+  } else {
+    item = currentList()[current];
+  }
   if (!item) return;
   $("status").textContent = "英語を聞いてみましょう。";
   if (mode === "conversation") {
@@ -1565,11 +1593,53 @@ function replayEnglish() {
 }
 function move(direction) {
   stopPractice(false);
+
+  if (mode === "listen") {
+    allMode = true;
+    if (allListeningFinished) {
+      allListeningFinished = false;
+      allCategoryIndex = categoryOrder.length - 1;
+      allListenType = "words";
+      category = categoryOrder[allCategoryIndex];
+      current = Math.max(0, (lessons[category].words || []).length - 1);
+      if (direction < 0) current = Math.max(0, current - 1);
+    } else {
+      current += direction;
+      if (current < 0) {
+        if (allListenType === "words") {
+          allListenType = "phrases";
+          allCategoryIndex--;
+          if (allCategoryIndex < 0) allCategoryIndex = 0;
+          category = categoryOrder[allCategoryIndex];
+          current = Math.max(0, (lessons[category].phrases || []).length - 1);
+        } else if (allCategoryIndex > 0) {
+          allCategoryIndex--;
+          category = categoryOrder[allCategoryIndex];
+          allListenType = "words";
+          current = Math.max(0, (lessons[category].words || []).length - 1);
+        } else {
+          current = 0;
+        }
+      } else if (!normalizeAllListeningPosition()) {
+        // 最終項目の次へは進まず、最後の項目に留める。
+        allCategoryIndex = categoryOrder.length - 1;
+        category = categoryOrder[allCategoryIndex];
+        allListenType = "words";
+        current = Math.max(0, (lessons[category].words || []).length - 1);
+        allListeningFinished = false;
+      }
+    }
+    updateAllListeningScreen();
+    $("status").textContent = "準備できました。スタートを押すと、この位置から再生します。";
+    return;
+  }
+
   const list = currentList();
   if (!list.length) return;
+  sectionFinished = false;
   current = (current + direction + list.length) % list.length;
   updateScreen();
-  $("status").textContent = "準備できました。スタートを押して練習しましょう！";
+  $("status").textContent = "準備できました。スタートを押すと、この位置から再生します。";
 }
 const modeNames = {phrase:"フレーズ練習", word:"単語練習", conversation:"会話練習", listen:"通し聞き"};
 function setModeButtons() {
@@ -1591,14 +1661,41 @@ document.querySelectorAll("[data-category]").forEach(button => button.addEventLi
   stopPractice(false);
   category = button.dataset.category;
   current = 0;
-  document.querySelectorAll("[data-category]").forEach(b => b.classList.toggle("selected", b === button));
-  updateScreen();
+  sectionFinished = false;
+  allListeningFinished = false;
+  if (mode === "listen") {
+    allMode = true;
+    allCategoryIndex = categoryOrder.indexOf(category);
+    allListenType = "phrases";
+    updateAllListeningScreen();
+  } else {
+    allMode = false;
+    document.querySelectorAll("[data-category]").forEach(b => b.classList.toggle("selected", b === button));
+    updateScreen();
+  }
   $("status").textContent = `${categoryNames[category]}を選びました。練習を始めましょう！`;
 }));
-$("phraseMode").addEventListener("click", () => { stopPractice(false); mode = "phrase"; current = 0; setModeButtons(); updateScreen(); });
-$("wordMode").addEventListener("click", () => { stopPractice(false); mode = "word"; current = 0; setModeButtons(); updateScreen(); });
-$("conversationMode").addEventListener("click", () => { stopPractice(false); mode = "conversation"; current = 0; setModeButtons(); updateScreen(); });
-$("listenMode").addEventListener("click", () => { stopPractice(false); mode = "listen"; current = 0; setModeButtons(); updateScreen(); });
+function changeMode(nextMode) {
+  stopPractice(false);
+  mode = nextMode;
+  current = 0;
+  sectionFinished = false;
+  allListeningFinished = false;
+  allMode = nextMode === "listen";
+  if (nextMode === "listen") {
+    allCategoryIndex = 0;
+    allListenType = "phrases";
+    category = categoryOrder[0];
+    updateAllListeningScreen();
+  } else {
+    updateScreen();
+  }
+  setModeButtons();
+}
+$("phraseMode").addEventListener("click", () => changeMode("phrase"));
+$("wordMode").addEventListener("click", () => changeMode("word"));
+$("conversationMode").addEventListener("click", () => changeMode("conversation"));
+$("listenMode").addEventListener("click", () => changeMode("listen"));
 $("startButton").addEventListener("click", startPractice);
 $("stopButton").addEventListener("click", () => stopPractice(true));
 $("replayButton").addEventListener("click", replayEnglish);
