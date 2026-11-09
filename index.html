@@ -24,7 +24,7 @@
     .mode-row button { font-size:15px; }
     .mode-row button.selected { background:#124d62; outline:3px solid #a5d5e1; }
     .label { color:#607d8b; font-size:13px; margin:12px 0 5px; }
-    #japanese { font-size:22px; line-height:1.55; }
+    #japanese { font-size:22px; line-height:1.55; white-space:pre-line; }
     #english { font-size:27px; font-weight:700; line-height:1.45; overflow-wrap:anywhere; margin:12px 0 20px; }
     #status { background:#edf4f7; padding:13px 10px; border-radius:12px; margin:16px 0; font-size:15px; line-height:1.6; min-height:48px; }
     .actions { display:grid; gap:8px; }
@@ -32,6 +32,8 @@
     #progress { color:#607d8b; text-align:center; margin-top:15px; font-size:14px; }
     .note { font-size:13px; line-height:1.6; color:#607d8b; }
     @media (max-width:360px) { #english { font-size:23px; } .panel { padding:17px 13px; } }
+  
+    #english { white-space: pre-line; }
   </style>
 </head>
 <body>
@@ -46,17 +48,19 @@
       <button class="category" data-category="town">🗺️ 街で使う英語<small>買い物・食事・観光</small></button>
       <button class="category" data-category="chat">💬 雑談・自己紹介<small>挨拶・簡単な会話</small></button>
       <button class="category" data-category="help">🆘 困ったとき<small>聞き返し・体調など</small></button>
+      <button class="category" data-category="home">🏠 おうちでのおもてなし<small>来客・食事・日常会話</small></button>
     </div>
   </section>
 
   <section class="panel">
     <h2>② 練習方法を選ぶ</h2>
     <div class="mode-row">
-      <button id="phraseMode" class="selected">📣 フレーズ練習</button>
+      <button id="phraseMode" class="selected">📣 フレーズ</button>
+      <button id="wordMode" class="secondary">📖 単語</button>
+      <button id="conversationMode" class="secondary">💬 会話</button>
       <button id="listenMode" class="secondary">🎧 通し聞き</button>
     </div>
-    <p class="note" id="modeDescription">選んだセクションのフレーズを、日本語・英語・発話時間を使って練習します。</p>
-    <p class="note" id="listenDescription">通し聞きでは4セクションすべてを順番に再生します。発話時間を入れるか選べます。</p>
+    <p class="note" id="modeDescription">日本語 → 英語 → 4秒の発話時間 → 英語 → 4秒の発話時間、の順に練習します。</p>
     <label id="pauseLabel" class="note"><input type="checkbox" id="shadowPause" checked> 通し聞きでも英語のあとに4秒の発話時間を入れる</label>
   </section>
 
@@ -79,71 +83,1213 @@
 </main>
 <script>
 const lessons = {
-  airport: [
-    {ja:"チェックインをしたいです。", en:"I'd like to check in."},
-    {ja:"私のパスポートです。", en:"Here's my passport."},
-    {ja:"窓側の席でお願いします。", en:"I'd like a window seat."},
-    {ja:"荷物を預けたいです。", en:"I'd like to check this bag."},
-    {ja:"これは機内に持ち込めますか？", en:"Can I take this on the plane?"},
-    {ja:"保安検査場はどこですか？", en:"Where is security?"},
-    {ja:"搭乗ゲートはどこですか？", en:"Where is my gate?"},
-    {ja:"何時に搭乗が始まりますか？", en:"What time does boarding start?"},
-    {ja:"お水をいただけますか？", en:"Can I have some water?"},
-    {ja:"荷物はどこで受け取れますか？", en:"Where can I get my bags?"}
-  ],
-  town: [
-    {ja:"いくらですか？", en:"How much is it?"},
-    {ja:"カードは使えますか？", en:"Can I pay by card?"},
-    {ja:"これをください。", en:"I'll take this."},
-    {ja:"袋をいただけますか？", en:"Can I have a bag?"},
-    {ja:"メニューをいただけますか？", en:"May I have the menu, please?"},
-    {ja:"何かおすすめはありますか？", en:"What do you recommend?"},
-    {ja:"お会計をお願いします。", en:"May I have the check, please?"},
-    {ja:"今晩宿泊を予約しています。", en:"I have a reservation for tonight."},
-    {ja:"写真を撮ってもらえますか？", en:"Could you take a picture of us?"},
-    {ja:"チケットはどこで買えますか？", en:"Where can I buy a ticket?"}
-  ],
-  chat: [
-    {ja:"こんにちは。", en:"Hello."},
-    {ja:"私はユミです。", en:"I'm Yumi."},
-    {ja:"出身はどちらですか？", en:"Where are you from?"},
-    {ja:"京都出身です。", en:"I'm from Kyoto."},
-    {ja:"お会いできて嬉しいです。", en:"Nice to meet you."},
-    {ja:"今日はいい天気ですね。", en:"The weather is nice today."},
-    {ja:"それは面白いですね。", en:"That's interesting."},
-    {ja:"本当ですか？", en:"Really?"},
-    {ja:"いいですね！", en:"Sounds good."},
-    {ja:"どういたしまして。", en:"You're welcome."}
-  ],
-  help: [
-    {ja:"もう一度言ってもらえますか？", en:"Could you say that again?"},
-    {ja:"もう少しゆっくり話していただけますか？", en:"Could you speak more slowly?"},
-    {ja:"分かりません。", en:"I don't understand."},
-    {ja:"英語があまり話せません。", en:"I don't speak much English."},
-    {ja:"日本語を話せる人はいますか？", en:"Does anyone speak Japanese?"},
-    {ja:"助けてもらえますか？", en:"Can you help me?"},
-    {ja:"体調が悪いです。", en:"I'm not feeling well."},
-    {ja:"薬局はどこですか？", en:"Where is the pharmacy?"},
-    {ja:"携帯電話をなくしました。", en:"I've lost my phone."},
-    {ja:"どういう意味ですか？", en:"What does that mean?"}
-  ]
+  airport: {
+    phrases: [
+      {ja:"チェックインをしたいです。", en:"I'd like to check in."},
+      {ja:"この列に並べばいいですか？", en:"Is this the right line?"},
+      {ja:"私のパスポートです。", en:"Here's my passport."},
+      {ja:"窓側の席でお願いします。", en:"I'd like a window seat."},
+      {ja:"通路側の席でお願いします。", en:"I'd like an aisle seat."},
+      {ja:"荷物を預けたいです。", en:"I'd like to check this bag."},
+      {ja:"これは機内に持ち込めますか？", en:"Can I take this on the plane?"},
+      {ja:"保安検査場はどこですか？", en:"Where is security?"},
+      {ja:"搭乗ゲートはどこですか？", en:"Where is my gate?"},
+      {ja:"何時に搭乗が始まりますか？", en:"What time does boarding start?"},
+      {ja:"この飛行機はエジプト行きですか？", en:"Is this the flight to Egypt?"},
+      {ja:"搭乗はもう始まっていますか？", en:"Has boarding started?"},
+      {ja:"荷物を上の棚に入れてもらえますか？", en:"Could you put my bag in the overhead bin?"},
+      {ja:"お水をいただけますか？", en:"Could I have some water?"},
+      {ja:"席を倒してもいいですか？", en:"May I recline my seat?"},
+      {ja:"食事は何時ごろですか？", en:"What time will the meal be served?"},
+      {ja:"これは何の料理ですか？", en:"What kind of dish is this?"},
+      {ja:"これは辛いですか？", en:"Is this spicy?"},
+      {ja:"メニューを見せてもらえますか？", en:"Could I see the menu?"},
+      {ja:"窓のブラインドを開けてもいいですか？", en:"Can I open the window shade?"},
+      {ja:"少し寒いです。", en:"I'm a little cold."},
+      {ja:"少し暑いです。", en:"I'm a little hot."},
+      {ja:"毛布をいただけますか？", en:"Can I have a blanket?"},
+      {ja:"荷物はどこで受け取れますか？", en:"Where can I get my bags?"},
+      {ja:"チキンをいただけますか？", en:"I'd like chicken, please."},
+      {ja:"あとどのくらいで着きますか？", en:"How much longer until we arrive?"},
+      {ja:"今どこを飛んでいますか？", en:"Where are we flying over now?"},
+      {ja:"着陸は何時ごろですか？", en:"What time will we land?"},
+      {ja:"荷物を出すのを手伝っていただけますか？", en:"Could you help me with my bag?"},
+      {ja:"通路を通ってもいいですか？", en:"May I pass through?"},
+      {ja:"忘れ物をしました。", en:"I left something on the plane."},
+      {ja:"もう降りてもいいですか？", en:"Can I get off the plane now?"},
+      {ja:"乗り継ぎの案内はどこですか？", en:"Where can I find the connecting flight information?"},
+      {ja:"入国審査はどこですか？", en:"Where is immigration?"},
+      {ja:"荷物受取所はどこですか？", en:"Where is baggage claim?"},
+      {ja:"税関はどこですか？", en:"Where is customs?"},
+      {ja:"到着ロビーはどこですか？", en:"Where is the arrivals hall?"},
+      {ja:"荷物はどこで受け取れますか？", en:"Where can I get my bag?"},
+      {ja:"荷物が見つかりません。", en:"I can't find my bag."},
+      {ja:"観光で来ました。", en:"I'm here for sightseeing."},
+      {ja:"1週間滞在する予定です。", en:"I'm planning to stay for one week."},
+      {ja:"ホテルに泊まります。", en:"I'm staying at a hotel."},
+      {ja:"このホテルに滞在します。", en:"I'm staying at this hotel."},
+      {ja:"帰りの航空券はこちらです。", en:"Here is my return ticket."},
+      {ja:"旅行で来ました。", en:"I'm here on vacation."},
+      {ja:"友人に会いに来ました。", en:"I'm here to visit a friend."},
+      {ja:"申告するものはありません。", en:"I have nothing to declare."},
+      {ja:"これは個人で使うものです。", en:"This is for personal use."},
+      {ja:"この用紙の書き方を教えてください。", en:"Could you show me how to fill out this form?"},
+      {ja:"タクシー乗り場はどこですか？", en:"Where is the taxi stand?"},
+      {ja:"バス乗り場はどこですか？", en:"Where is the bus stop?"},
+      {ja:"電車の駅はどこですか？", en:"Where is the train station?"},
+      {ja:"市内までどのくらいかかりますか？", en:"How long does it take to get to the city?"},
+      {ja:"この電車は市内に行きますか？", en:"Does this train go to the city?"},
+      {ja:"切符を2枚ください。", en:"Two tickets, please."},
+      {ja:"ここで降りればいいですか？", en:"Should I get off here?"},
+      {ja:"ホテルまでお願いします。", en:"To the hotel, please."},
+      {ja:"ここで待っていてもいいですか？", en:"Can I wait here?"},
+      {ja:"迎えに来てくれてありがとうございます。", en:"Thank you for picking me up."},
+    ],
+
+    words: [
+      {ja:"乗り継ぎ便", en:"connecting flight"},
+      {ja:"欠航", en:"cancellation"},
+      {ja:"遅延", en:"delay"},
+      {ja:"預け荷物", en:"checked baggage"},
+      {ja:"手荷物", en:"carry-on baggage"},
+      {ja:"荷物受取所", en:"baggage claim"},
+      {ja:"搭乗開始", en:"boarding"},
+      {ja:"出発時刻", en:"departure time"},
+      {ja:"到着時刻", en:"arrival time"},
+      {ja:"通路側の席", en:"aisle seat"},
+      {ja:"非常口", en:"emergency exit"},
+      {ja:"税関", en:"customs"},
+      {ja:"入国審査", en:"immigration"},
+      {ja:"乗り継ぎ便", en:"connecting flight"},
+      {ja:"搭乗券", en:"boarding pass"},
+      {ja:"空席", en:"available seat"},
+      {ja:"払い戻し", en:"refund"},
+      {ja:"予約の変更", en:"reservation change"},
+      {ja:"荷物の紛失", en:"lost luggage"},
+      {ja:"目的地", en:"destination"},
+    ],
+
+    conversations: [
+      {
+        scene: "入国審査",
+        question: "What is the purpose of your visit?",
+        questionJa: "渡航の目的は何ですか？",
+        answer: "Sightseeing.",
+        answerJa: "観光です。"
+      },
+      {
+        scene: "入国審査",
+        question: "How long will you stay?",
+        questionJa: "どのくらい滞在しますか？",
+        answer: "For a week.",
+        answerJa: "1週間です。"
+      },
+      {
+        scene: "入国審査",
+        question: "Are you traveling alone?",
+        questionJa: "一人で旅行していますか？",
+        answer: "No, I'm with my family.",
+        answerJa: "いいえ、家族と一緒です。"
+      },
+      {
+        scene: "入国審査",
+        question: "Who are you traveling with?",
+        questionJa: "誰と旅行していますか？",
+        answer: "I'm traveling with my husband.",
+        answerJa: "夫と旅行しています。"
+      },
+      {
+        scene: "入国審査",
+        question: "What is your occupation?",
+        questionJa: "職業は何ですか？",
+        answer: "I'm a homemaker.",
+        answerJa: "主婦です。"
+      },
+      {
+        scene: "入国審査",
+        question: "Do you have a return ticket?",
+        questionJa: "帰りの航空券は持っていますか？",
+        answer: "Yes, I do.",
+        answerJa: "はい、持っています。"
+      },
+      {
+        scene: "入国審査",
+        question: "When are you leaving?",
+        questionJa: "いつ出国しますか？",
+        answer: "Next Monday.",
+        answerJa: "来週の月曜日です。"
+      },
+      {
+        scene: "入国審査",
+        question: "Which hotel are you staying at?",
+        questionJa: "どのホテルに泊まりますか？",
+        answer: "At the ABC Hotel.",
+        answerJa: "ABCホテルです。"
+      },
+      {
+        scene: "入国審査",
+        question: "How much money are you carrying?",
+        questionJa: "現金はいくら持っていますか？",
+        answer: "About 500 dollars.",
+        answerJa: "約500ドルです。"
+      },
+      {
+        scene: "入国審査",
+        question: "What places are you planning to visit?",
+        questionJa: "どこを訪れる予定ですか？",
+        answer: "I'd like to visit some famous places.",
+        answerJa: "有名な場所をいくつか訪れたいです。"
+      }
+    ]
+  },
+
+  town: {
+    phrases: [
+      {ja:"いくらですか？", en:"How much is it?"},
+      {ja:"見ているだけです。", en:"I'm just looking."},
+      {ja:"もう少し小さいサイズはありますか？", en:"Do you have a smaller size?"},
+      {ja:"別の色はありますか？", en:"Do you have another color?"},
+      {ja:"試着してもいいですか？", en:"Can I try this on?"},
+      {ja:"このお店は免税店ですか？", en:"Is this shop duty free?"},
+      {ja:"もう少し安くしてもらえませんか？", en:"Could you give me a little discount?"},
+      {ja:"娘へのお土産を探しています。", en:"I'm looking for a gift for my daughter."},
+      {ja:"カードは使えますか？", en:"Can I pay by card?"},
+      {ja:"これをください。", en:"I'll take this."},
+      {ja:"袋をいただけますか？", en:"Can I have a bag?"},
+      {ja:"予約していません。", en:"I don't have a reservation."},
+      {ja:"2人分の席はありますか？", en:"Do you have a table for two?"},
+      {ja:"どこに座ればいいですか？", en:"Where should I sit?"},
+      {ja:"禁煙席はありますか？", en:"Do you have a non-smoking area?"},
+      {ja:"外の席に座りたいです。", en:"I'd like to sit outside."},
+      {ja:"メニューをいただけますか？", en:"May I have the menu, please?"},
+      {ja:"何かおすすめはありますか？", en:"What do you recommend?"},
+      {ja:"地元の名物料理はありますか？", en:"Do you have any local specialties?"},
+      {ja:"一番人気の料理はなんですか？", en:"What's the most popular dish?"},
+      {ja:"これはどんな料理ですか？", en:"What kind of dish is this?"},
+      {ja:"注文はまだ決まっていません。", en:"I'm not ready to order yet."},
+      {ja:"これは何人分ですか？", en:"How many people does this serve?"},
+      {ja:"量は多いですか？", en:"Is it a large portion?"},
+      {ja:"これには何が入っていますか？", en:"What is in this?"},
+      {ja:"パクチーは入っていますか？", en:"Does this contain cilantro?"},
+      {ja:"フォークをいただけますか？", en:"Could I have a fork?"},
+      {ja:"パクチー抜きにできますか？", en:"Can I have this without cilantro?"},
+      {ja:"炭酸なしの水をお願いします。", en:"Still water, please."},
+      {ja:"炭酸水をお願いします。", en:"Sparkling water, please."},
+      {ja:"これは注文していません。", en:"I didn't order this."},
+      {ja:"料理がまだきていません。", en:"Our food hasn't arrived yet."},
+      {ja:"もう十分です。", en:"That's enough, thank you."},
+      {ja:"まだ食べています。", en:"I'm still eating."},
+      {ja:"持ち帰り用の容器をいただけますか？", en:"Could I have a box to take this home?"},
+      {ja:"コーヒーにミルクを入れてください。", en:"Milk in my coffee, please."},
+      {ja:"お会計をお願いします。", en:"May I have the check, please?"},
+      {ja:"別々に払えますか？", en:"Can we pay separately?"},
+      {ja:"まとめて払います。", en:"We'll pay together."},
+      {ja:"チップは含まれていますか？", en:"Is the tip included?"},
+      {ja:"現金で支払います。", en:"I'll pay in cash."},
+      {ja:"レシートをいただけますか？", en:"Could I have a receipt?"},
+      {ja:"何時閉店ですか？", en:"What time do you close?"},
+      {ja:"今晩宿泊を予約しています。", en:"I have a reservation for tonight."},
+      {ja:"写真を撮ってもらえますか？", en:"Could you take a picture of us?"},
+      {ja:"入場料はいくらですか？", en:"How much is admission?"},
+      {ja:"この美術館のパンフレットはありますか？", en:"Do you have a brochure for this museum?"},
+      {ja:"チケットはどこで買えますか？", en:"Where can I buy a ticket?"},
+      {ja:"朝食は何時からですか？", en:"What time does breakfast start?"},
+      {ja:"ここにWi-Fiはありますか？", en:"Is there Wi-Fi here?"},
+      {ja:"タオルを追加で持ってきていただけますか？", en:"Could you bring some extra towels, please?"},
+      {ja:"ピラミッドへ行くにはどのぐらい時間がかかりますか？", en:"How long does it take to get to the pyramids?"},
+      {ja:"チケットはどこで買えますか？", en:"Where can I buy a ticket?"}
+    ],
+    words: [
+      {ja:"街", en:"town"},
+      {ja:"市", en:"city"},
+      {ja:"通り", en:"street"},
+      {ja:"道", en:"road"},
+      {ja:"交差点", en:"intersection"},
+      {ja:"角", en:"corner"},
+      {ja:"歩道", en:"sidewalk"},
+      {ja:"横断歩道", en:"crosswalk"},
+      {ja:"橋", en:"bridge"},
+      {ja:"公園", en:"park"},
+      {ja:"広場", en:"square"},
+      {ja:"建物", en:"building"},
+      {ja:"ホテル", en:"hotel"},
+      {ja:"レストラン", en:"restaurant"},
+      {ja:"カフェ", en:"cafe"},
+      {ja:"スーパーマーケット", en:"supermarket"},
+      {ja:"コンビニ", en:"convenience store"},
+      {ja:"薬局", en:"pharmacy"},
+      {ja:"病院", en:"hospital"},
+      {ja:"銀行", en:"bank"},
+      {ja:"郵便局", en:"post office"},
+      {ja:"駅", en:"station"},
+      {ja:"バス停", en:"bus stop"},
+      {ja:"タクシー乗り場", en:"taxi stand"},
+      {ja:"お土産", en:"souvenir"},
+      {ja:"値段", en:"price"},
+      {ja:"割引", en:"discount"},
+      {ja:"セール", en:"sale"},
+      {ja:"レシート", en:"receipt"},
+      {ja:"右", en:"right"},
+      {ja:"左", en:"left"},
+      {ja:"まっすぐ", en:"straight"},
+      {ja:"近く", en:"nearby"},
+      {ja:"遠く", en:"far away"},
+      {ja:"隣", en:"next to"},
+      {ja:"向かい", en:"across from"},
+      {ja:"前", en:"in front of"},
+      {ja:"後ろ", en:"behind"},
+      {ja:"北", en:"north"},
+      {ja:"南", en:"south"},
+      {ja:"東", en:"east"},
+      {ja:"西", en:"west"},
+      {ja:"住所", en:"address"},
+      {ja:"目的地", en:"destination"},
+      {ja:"切符", en:"ticket"},
+      {ja:"乗り換え", en:"transfer"},
+      {ja:"駐車場", en:"parking lot"},
+      {ja:"渋滞", en:"traffic jam"},
+      {ja:"営業中", en:"open"},
+      {ja:"閉店", en:"closed"},
+      {ja:"無料", en:"free"},
+      {ja:"有料", en:"paid"},
+      {ja:"禁止", en:"prohibited"},
+      {ja:"注意", en:"caution"},
+      {ja:"危険", en:"danger"},
+      {ja:"押す", en:"push"},
+      {ja:"引く", en:"pull"},
+      {ja:"使用中", en:"occupied"},
+      {ja:"写真撮影禁止", en:"no photography"},
+      {ja:"お手洗い", en:"restroom"},
+      {ja:"ゴミ箱", en:"trash can"},
+      {ja:"忘れ物", en:"lost item"},
+      {ja:"落とし物", en:"lost property"},
+      {ja:"忘れ物窓口", en:"lost and found"},
+      {ja:"充電器", en:"charger"},
+      {ja:"携帯電話", en:"cell phone"},
+      {ja:"迷子", en:"lost"},
+      {ja:"人混み", en:"crowd"},
+      {ja:"観光客", en:"tourist"},
+      {ja:"地元の人", en:"local"},
+      {ja:"静かな", en:"quiet"},
+      {ja:"にぎやかな", en:"busy"},
+      {ja:"きれいな", en:"beautiful"},
+    ],
+    conversations: [
+      {
+        scene: "道案内",
+        question: "Where is the station?",
+        questionJa: "駅はどこですか？",
+        answer: "It's over there.",
+        answerJa: "あそこです。"
+      },
+      {
+        scene: "道案内",
+        question: "Is it far from here?",
+        questionJa: "ここから遠いですか？",
+        answer: "No, it's very close.",
+        answerJa: "いいえ、とても近いです。"
+      },
+      {
+        scene: "道案内",
+        question: "How can I get to the hotel?",
+        questionJa: "ホテルへはどう行けばいいですか？",
+        answer: "Go straight and turn left.",
+        answerJa: "まっすぐ進んで左に曲がってください。"
+      },
+      {
+        scene: "交通機関",
+        question: "Where is the bus stop?",
+        questionJa: "バス停はどこですか？",
+        answer: "It's next to the bank.",
+        answerJa: "銀行の隣です。"
+      },
+      {
+        scene: "交通機関",
+        question: "Does this bus go to the airport?",
+        questionJa: "このバスは空港に行きますか？",
+        answer: "Yes, it does.",
+        answerJa: "はい、行きます。"
+      },
+      {
+        scene: "買い物",
+        question: "Can I help you?",
+        questionJa: "何かお探しですか？",
+        answer: "I'm just looking, thank you.",
+        answerJa: "見ているだけです。ありがとうございます。"
+      },
+      {
+        scene: "買い物",
+        question: "How much is this?",
+        questionJa: "これはいくらですか？",
+        answer: "It's ten dollars.",
+        answerJa: "10ドルです。"
+      },
+      {
+        scene: "買い物",
+        question: "Would you like a bag?",
+        questionJa: "袋はいりますか？",
+        answer: "Yes, please.",
+        answerJa: "はい、お願いします。"
+      },
+      {
+        scene: "買い物",
+        question: "Do you need a receipt?",
+        questionJa: "レシートは必要ですか？",
+        answer: "No, thank you.",
+        answerJa: "いいえ、結構です。"
+      },
+      {
+        scene: "街中",
+        question: "What time does the museum open?",
+        questionJa: "博物館は何時に開きますか？",
+        answer: "It opens at nine.",
+        answerJa: "9時に開きます。"
+      },
+      {
+        scene: "街中",
+        question: "Can I take pictures here?",
+        questionJa: "ここで写真を撮ってもいいですか？",
+        answer: "Yes, you can.",
+        answerJa: "はい、撮ってもいいですよ。"
+      },
+      {
+        scene: "街中",
+        question: "Is there a restroom nearby?",
+        questionJa: "この近くにトイレはありますか？",
+        answer: "Yes, it's inside the building.",
+        answerJa: "はい、建物の中にあります。"
+      }
+]
+  },
+  chat: {
+    phrases: [
+      {ja:"こんにちは。", en:"Hello."},
+      {ja:"私はユミです。", en:"I'm Yumi."},
+      {ja:"お名前は何ですか？", en:"May I ask your name?"},
+      {ja:"どちらに住んでいますか？", en:"Where do you live?"},
+      {ja:"日本には初めて来ましたか？", en:"Is this your first time in Japan?"},
+      {ja:"日本はどうですか？", en:"How do you like Japan?"},
+      {ja:"お仕事は何をしていますか？", en:"What do you do?"},
+      {ja:"家族は何人ですか？", en:"How many people are in your family?"},
+      {ja:"趣味は何ですか？", en:"What are your hobbies?"},
+      {ja:"休日は何をしていますか？", en:"What do you do on weekends?"},
+      {ja:"普段は何時に起きますか？", en:"What time do you usually get up?"},
+      {ja:"日本の食べ物は好きですか？", en:"Do you like Japanese food?"},
+      {ja:"何か欲しいものはありますか？", en:"Do you want anything?"},
+      {ja:"出身はどちらですか？", en:"Where are you from?"},
+      {ja:"京都出身です。", en:"I'm from Kyoto."},
+      {ja:"お会いできて嬉しいです。", en:"Nice to meet you."},
+      {ja:"今日はいい天気ですね。", en:"The weather is nice today."},
+      {ja:"それは面白いですね。", en:"That's interesting."},
+      {ja:"本当ですか？", en:"Really?"},
+      {ja:"いいですね！", en:"Sounds good."},
+      {ja:"どういたしまして。", en:"You're welcome."},
+      {ja:"そうなんですね。", en:"I see."},
+      {ja:"私もそう思います。", en:"I think so, too."},
+      {ja:"私もです。", en:"Me too."},
+      {ja:"そうなんですか？", en:"Is that so?"},
+      {ja:"それはすごいですね！", en:"That's amazing!"},
+      {ja:"それは大変でしたね。", en:"That must have been hard."},
+      {ja:"楽しそうですね！", en:"That sounds fun!"},
+      {ja:"よかったですね！", en:"That's great!"},
+      {ja:"なるほど。", en:"That makes sense."},
+      {ja:"もう少し詳しく教えてください。", en:"Tell me a little more about it."},
+      {ja:"それについてもっと知りたいです。", en:"I'd like to know more about it."},
+      {ja:"私も行ってみたいです。", en:"I'd like to go there, too."},
+      {ja:"私は日本に住んでいます。", en:"I live in Japan."},
+      {ja:"私は英語を勉強しています。", en:"I'm studying English."},
+      {ja:"英語はまだ勉強中です。", en:"I'm still learning English."},
+      {ja:"少しだけ英語が話せます。", en:"I can speak a little English."},
+      {ja:"料理が好きです。", en:"I like cooking."},
+      {ja:"旅行が好きです。", en:"I like traveling."},
+      {ja:"音楽を聴くのが好きです。", en:"I like listening to music."},
+      {ja:"映画を見るのが好きです。", en:"I like watching movies."},
+      {ja:"日本料理を作るのが好きです。", en:"I like cooking Japanese food."},
+      {ja:"今日はとても楽しいです。", en:"I'm having a great time today."},
+      {ja:"あなたと話せて嬉しいです。", en:"I'm happy to talk with you."},
+      {ja:"今日は楽しかったです。", en:"I had a great time today."},
+      {ja:"お話しできてよかったです。", en:"It was nice talking with you."},
+      {ja:"今日はありがとうございました。", en:"Thank you for today."},
+      {ja:"気をつけて帰ってください。", en:"Have a safe trip home."},
+      {ja:"またお話ししましょう。", en:"Let's talk again."},
+      {ja:"また会えるのを楽しみにしています。", en:"I'm looking forward to seeing you again."},
+      {ja:"素敵な一日を！", en:"Have a wonderful day!"},
+      {ja:"気に入りました", en:"I like it."},
+      {ja:"大好きです", en:"I love it."},
+      {ja:"少し難しいです", en:"It's a little difficult."},
+      {ja:"簡単です", en:"It's easy."},
+      {ja:"また後で", en:"see you later."},
+      {ja:"また明日", en:"see you tomorrow."},
+      {ja:"また会いましょう", en:"see you again."},
+    ],
+    words: [
+      {ja:"今", en:"now"},
+      {ja:"後で", en:"later"},
+      {ja:"一緒に", en:"together"},
+      {ja:"別々に", en:"separately"},
+      {ja:"もう一度", en:"again"},
+      {ja:"少し", en:"a little"},
+      {ja:"たくさん", en:"a lot"},
+      {ja:"メモを取る", en:"take notes"},
+      {ja:"写真を撮る", en:"take a picture"},
+      {ja:"動画を撮る", en:"take a video"},
+      {ja:"地図を見る", en:"look at a map"},
+      {ja:"調べる", en:"look it up"},
+      {ja:"確認する", en:"check"},
+      {ja:"約束", en:"appointment"},
+      {ja:"聞く", en:"ask"},
+      {ja:"答える", en:"answer"},
+      {ja:"話す", en:"speak"},
+      {ja:"聞く・耳を傾ける", en:"listen"},
+      {ja:"見る", en:"look"},
+      {ja:"読む", en:"read"},
+      {ja:"書く", en:"write"},
+      {ja:"待つ", en:"wait"},
+      {ja:"歩く", en:"walk"},
+      {ja:"走る", en:"run"},
+      {ja:"座る", en:"sit down"},
+      {ja:"立つ", en:"stand up"},
+      {ja:"入る", en:"enter"},
+      {ja:"出る", en:"go out"},
+      {ja:"行く", en:"go"},
+      {ja:"来る", en:"come"},
+      {ja:"買う", en:"buy"},
+      {ja:"払う", en:"pay"},
+      {ja:"使う", en:"use"},
+      {ja:"手伝う", en:"help"},
+      {ja:"休む", en:"take a break"},
+      {ja:"いいですね", en:"sounds good"},
+      {ja:"すごい！", en:"amazing"},
+      {ja:"すてき！", en:"wonderful"},
+      {ja:"おいしい！", en:"delicious"},
+      {ja:"楽しい！", en:"fun"},
+      {ja:"きれい！", en:"beautiful"},
+      {ja:"かわいい！", en:"cute"},
+      {ja:"おもしろい", en:"interesting"},
+      {ja:"よかった！", en:"That's great."},
+      {ja:"残念です", en:"That's too bad."},
+      {ja:"本当ですか？", en:"Really?"},
+      {ja:"いい考えですね", en:"good idea"},
+      {ja:"鳩", en:"pigeon"},
+      {ja:"カラス", en:"crow"},
+      {ja:"スズメ", en:"sparrow"},
+      {ja:"カモ", en:"duck"},
+      {ja:"カモメ", en:"seagull"},
+      {ja:"フクロウ", en:"owl"},
+      {ja:"リス", en:"squirrel"},
+      {ja:"ウサギ", en:"rabbit"},
+      {ja:"ネズミ", en:"mouse"},
+      {ja:"ハリネズミ", en:"hedgehog"},
+      {ja:"コウモリ", en:"bat"},
+      {ja:"馬", en:"horse"},
+      {ja:"牛", en:"cow"},
+      {ja:"羊", en:"sheep"},
+      {ja:"ヤギ", en:"goat"},
+      {ja:"鹿", en:"deer"},
+      {ja:"猿", en:"monkey"},
+      {ja:"カエル", en:"frog"},
+      {ja:"カメ", en:"turtle"},
+      {ja:"トカゲ", en:"lizard"},
+      {ja:"ヘビ", en:"snake"},
+      {ja:"チョウ", en:"butterfly"},
+      {ja:"ハチ", en:"bee"},
+      {ja:"アリ", en:"ant"},
+      {ja:"テントウムシ", en:"ladybug"},
+      {ja:"トンボ", en:"dragonfly"},
+      {ja:"セミ", en:"cicada"},
+      {ja:"バッタ", en:"grasshopper"},
+      {ja:"クモ", en:"spider"},
+      {ja:"カタツムリ", en:"snail"},
+      {ja:"ミミズ", en:"earthworm"},
+      {ja:"草", en:"grass"},
+      {ja:"葉", en:"leaf"},
+      {ja:"枝", en:"branch"},
+      {ja:"幹", en:"trunk"},
+      {ja:"根", en:"root"},
+      {ja:"桜", en:"cherry blossom"},
+      {ja:"チューリップ", en:"tulip"},
+      {ja:"ひまわり", en:"sunflower"},
+      {ja:"タンポポ", en:"dandelion"},
+      {ja:"アジサイ", en:"hydrangea"},
+      {ja:"ユリ", en:"lily"},
+      {ja:"スミレ", en:"violet"},
+      {ja:"コスモス", en:"cosmos"},
+      {ja:"ツツジ", en:"azalea"},
+      {ja:"梅", en:"plum blossom"},
+      {ja:"藤", en:"wisteria"},
+      {ja:"イチョウ", en:"ginkgo tree"},
+      {ja:"松", en:"pine tree"},
+      {ja:"竹", en:"bamboo"},
+      {ja:"モミジ", en:"maple"},
+      {ja:"ヤシの木", en:"palm tree"},
+      {ja:"サボテン", en:"cactus"},
+      {ja:"シダ", en:"fern"},
+      {ja:"コケ", en:"moss"},
+      {ja:"森", en:"forest"},
+      {ja:"林", en:"woods"},
+      {ja:"草原", en:"grassland"},
+      {ja:"花壇", en:"flower bed"},
+      {ja:"植木鉢", en:"flower pot"},
+      {ja:"芝生", en:"lawn"},
+      {ja:"落ち葉", en:"fallen leaves"},
+      {ja:"木の実", en:"nut"},
+      {ja:"種", en:"seed"},
+      {ja:"芽", en:"sprout"},
+      {ja:"つぼみ", en:"bud"},
+      {ja:"花びら", en:"petal"},
+      {ja:"とげ", en:"thorn"},
+      {ja:"雑草", en:"weed"},
+      {ja:"生け垣", en:"hedge"},
+      {ja:"花粉", en:"pollen"},
+      {ja:"巣", en:"nest"},
+      {ja:"羽", en:"feather"},
+      {ja:"鳴き声", en:"call"},
+      {ja:"野菜", en:"vegetable"},
+      {ja:"きゅうり", en:"cucumber"},
+      {ja:"にんじん", en:"carrot"},
+      {ja:"玉ねぎ", en:"onion"},
+      {ja:"さつまいも", en:"sweet potato"},
+      {ja:"大根", en:"daikon radish"},
+      {ja:"かぶ", en:"turnip"},
+      {ja:"キャベツ", en:"cabbage"},
+      {ja:"レタス", en:"lettuce"},
+      {ja:"ほうれん草", en:"spinach"},
+      {ja:"小松菜", en:"Japanese mustard spinach"},
+      {ja:"ブロッコリー", en:"broccoli"},
+      {ja:"カリフラワー", en:"cauliflower"},
+      {ja:"ピーマン", en:"green pepper"},
+      {ja:"パプリカ", en:"bell pepper"},
+      {ja:"なす", en:"eggplant"},
+      {ja:"かぼちゃ", en:"pumpkin"},
+      {ja:"ズッキーニ", en:"zucchini"},
+      {ja:"アスパラガス", en:"asparagus"},
+      {ja:"セロリ", en:"celery"},
+      {ja:"白菜", en:"Chinese cabbage"},
+      {ja:"ねぎ", en:"green onion"},
+      {ja:"にんにく", en:"garlic"},
+      {ja:"しょうが", en:"ginger"},
+      {ja:"れんこん", en:"lotus root"},
+      {ja:"ごぼう", en:"burdock root"},
+      {ja:"きのこ", en:"mushroom"},
+      {ja:"豆", en:"bean"},
+      {ja:"枝豆", en:"edamame"},
+      {ja:"グリーンピース", en:"green peas"},
+      {ja:"もやし", en:"bean sprouts"},
+      {ja:"オクラ", en:"okra"},
+      {ja:"アボカド", en:"avocado"},
+      {ja:"肉", en:"meat"},
+      {ja:"牛肉", en:"beef"},
+      {ja:"豚肉", en:"pork"},
+      {ja:"鶏肉", en:"chicken"},
+      {ja:"ひき肉", en:"ground meat"},
+      {ja:"羊肉", en:"lamb"},
+      {ja:"マグロ", en:"tuna"},
+      {ja:"エビ", en:"shrimp"},
+      {ja:"カニ", en:"crab"},
+      {ja:"イカ", en:"squid"},
+      {ja:"タコ", en:"octopus"},
+      {ja:"貝", en:"shellfish"},
+      {ja:"カキ", en:"oyster"},
+      {ja:"ホタテ", en:"scallop"},
+      {ja:"サバ", en:"mackerel"},
+      {ja:"タイ", en:"sea bream"},
+      {ja:"タラ", en:"cod"},
+      {ja:"イワシ", en:"sardine"},
+      {ja:"うなぎ", en:"eel"},
+      {ja:"ゆで卵", en:"boiled egg"},
+      {ja:"目玉焼き", en:"fried egg"},
+      {ja:"焼き鳥", en:"grilled chicken skewers"},
+      {ja:"唐揚げ", en:"fried chicken"},
+      {ja:"コロッケ", en:"croquette"},
+      {ja:"餃子", en:"dumplings"},
+      {ja:"春巻き", en:"spring roll"},
+      {ja:"お好み焼き", en:"Japanese savory pancake"},
+      {ja:"焼き魚", en:"grilled fish"},
+      {ja:"煮物", en:"simmered dish"},
+      {ja:"塩", en:"salt"},
+      {ja:"砂糖", en:"sugar"},
+      {ja:"こしょう", en:"pepper"},
+      {ja:"しょうゆ", en:"soy sauce"},
+      {ja:"酢", en:"vinegar"},
+      {ja:"油", en:"oil"},
+      {ja:"ドレッシング", en:"salad dressing"},
+      {ja:"辛い", en:"spicy"},
+      {ja:"甘い", en:"sweet"},
+      {ja:"しょっぱい", en:"salty"},
+      {ja:"酸っぱい", en:"sour"},
+      {ja:"苦い", en:"bitter"},
+      {ja:"おいしい", en:"delicious"},
+      {ja:"新鮮な", en:"fresh"},
+    ],
+    conversations: [
+  {
+    scene: "自己紹介",
+    question: "Is this your first time here?",
+    questionJa: "ここに来るのは初めてですか？",
+    answer: "Yes, it is.",
+    answerJa: "はい、初めてです。"
+  },
+  {
+    scene: "自己紹介",
+    question: "Do you speak English?",
+    questionJa: "英語を話しますか？",
+    answer: "A little.",
+    answerJa: "少しだけ話せます。"
+  },
+  {
+    scene: "旅行",
+    question: "Are you enjoying your trip?",
+    questionJa: "旅行を楽しんでいますか？",
+    answer: "Yes, very much.",
+    answerJa: "はい、とても楽しんでいます。"
+  },
+  {
+    scene: "旅行",
+    question: "How long are you staying?",
+    questionJa: "どのくらい滞在する予定ですか？",
+    answer: "For one week.",
+    answerJa: "1週間です。"
+  },
+  {
+    scene: "旅行",
+    question: "Where are you staying?",
+    questionJa: "どこに泊まっていますか？",
+    answer: "I'm staying at a hotel.",
+    answerJa: "ホテルに泊まっています。"
+  },
+  {
+    scene: "旅行",
+    question: "Where have you been so far?",
+    questionJa: "今までどこに行きましたか？",
+    answer: "I've been to the city center.",
+    answerJa: "街の中心部に行きました。"
+  },
+  {
+    scene: "趣味",
+    question: "What do you like to do?",
+    questionJa: "何をするのが好きですか？",
+    answer: "I like listening to music.",
+    answerJa: "音楽を聴くのが好きです。"
+  },
+  {
+    scene: "趣味",
+    question: "Do you like traveling?",
+    questionJa: "旅行は好きですか？",
+    answer: "Yes, I love traveling.",
+    answerJa: "はい、旅行が大好きです。"
+  },
+  {
+    scene: "趣味",
+    question: "What kind of music do you like?",
+    questionJa: "どんな音楽が好きですか？",
+    answer: "I like classical music.",
+    answerJa: "クラシック音楽が好きです。"
+  },
+  {
+    scene: "趣味",
+    question: "Do you like cooking?",
+    questionJa: "料理は好きですか？",
+    answer: "Yes, I do.",
+    answerJa: "はい、好きです。"
+  },
+  {
+    scene: "天気",
+    question: "How is the weather today?",
+    questionJa: "今日はどんな天気ですか？",
+    answer: "It's sunny and warm.",
+    answerJa: "晴れていて暖かいです。"
+  },
+  {
+    scene: "天気",
+    question: "Do you like rainy days?",
+    questionJa: "雨の日は好きですか？",
+    answer: "Not really.",
+    answerJa: "あまり好きではありません。"
+  },
+  {
+    scene: "食べ物",
+    question: "What's your favorite food?",
+    questionJa: "好きな食べ物は何ですか？",
+    answer: "I love sushi.",
+    answerJa: "お寿司が大好きです。"
+  },
+  {
+    scene: "食べ物",
+    question: "Do you like spicy food?",
+    questionJa: "辛い食べ物は好きですか？",
+    answer: "No, I prefer mild food.",
+    answerJa: "いいえ、辛くない食べ物の方が好きです。"
+  },
+  {
+    scene: "日常会話",
+    question: "What are you doing tomorrow?",
+    questionJa: "明日は何をする予定ですか？",
+    answer: "I'm going shopping.",
+    answerJa: "買い物に行く予定です。"
+  },
+  {
+    scene: "日常会話",
+    question: "What time is it?",
+    questionJa: "今何時ですか？",
+    answer: "It's three o'clock.",
+    answerJa: "3時です。"
+  },
+  {
+    scene: "日常会話",
+    question: "Are you tired?",
+    questionJa: "疲れていますか？",
+    answer: "A little, but I'm fine.",
+    answerJa: "少し疲れていますが、大丈夫です。"
+  },
+  {
+    scene: "日常会話",
+    question: "Would you like to join us?",
+    questionJa: "一緒に来ませんか？",
+    answer: "Sure, I'd love to.",
+    answerJa: "もちろん、ぜひ。"
+  },
+  {
+    scene: "会話の返答",
+    question: "Really?",
+    questionJa: "本当ですか？",
+    answer: "Yes, that's right.",
+    answerJa: "はい、そうです。"
+  },
+  {
+    scene: "会話の返答",
+    question: "What do you think?",
+    questionJa: "どう思いますか？",
+    answer: "I think it's great.",
+    answerJa: "とてもいいと思います。"
+  },
+  {
+    scene: "会話の返答",
+    question: "Did you have fun?",
+    questionJa: "楽しかったですか？",
+    answer: "Yes, I had a great time.",
+    answerJa: "はい、とても楽しかったです。"
+  },
+  {
+    scene: "会話の返答",
+    question: "Can you say that again?",
+    questionJa: "もう一度言ってもらえますか？",
+    answer: "Of course.",
+    answerJa: "もちろんです。"
+  },
+  {
+    scene: "別れのあいさつ",
+    question: "It was nice talking to you.",
+    questionJa: "お話しできてよかったです。",
+    answer: "Nice talking to you, too.",
+    answerJa: "こちらこそ、お話しできてよかったです。"
+  },
+    ]
+  },
+  help: {
+    phrases: [
+      {ja:"もう一度言ってもらえますか？", en:"Could you say that again?"},
+      {ja:"もう少しゆっくり話していただけますか？", en:"Could you speak more slowly?"},
+      {ja:"英語があまり話せません。", en:"I don't speak much English."},
+      {ja:"よく分かりません。", en:"I don't understand."},
+      {ja:"これはどういう意味ですか？", en:"What does this mean?"},
+      {ja:"紙に書いてもらえますか？", en:"Could you write it down?"},
+      {ja:"手伝ってもらえますか？", en:"Could you help me?"},
+      {ja:"少し待ってください。", en:"Please wait a moment."},
+      {ja:"どうしたらいいですか？", en:"What should I do?"},
+      {ja:"大丈夫ですか？", en:"Are you okay?"},
+      {ja:"何か問題がありますか？", en:"Is something wrong?"},
+      {ja:"道に迷いました。", en:"I'm lost."},
+      {ja:"ここはどこですか？", en:"Where are we?"},
+      {ja:"トイレはどこですか？", en:"Where is the restroom?"},
+      {ja:"日本語を話せる人はいますか？", en:"Does anyone speak Japanese?"},
+      {ja:"携帯電話をなくしました。", en:"I've lost my phone."},
+      {ja:"財布をなくしました。", en:"I've lost my wallet."},
+      {ja:"パスポートをなくしました。", en:"I've lost my passport."},
+      {ja:"忘れ物をしました。", en:"I left something behind."},
+      {ja:"これをなくしました。", en:"I've lost this."},
+      {ja:"これは私のものではありません。", en:"This isn't mine."},
+      {ja:"鍵が見つかりません。", en:"I can't find my key."},
+      {ja:"電話がつながりません。", en:"I can't get through on the phone."},
+      {ja:"道を教えてもらえますか？", en:"Could you show me the way?"},
+      {ja:"ここに行きたいです。", en:"I'd like to go here."},
+      {ja:"予約を確認したいです。", en:"I'd like to check my reservation."},
+      {ja:"注文したものと違います。", en:"This isn't what I ordered."},
+      {ja:"お会計が違うようです。", en:"I think there's a mistake on the bill."},
+      {ja:"体調が悪いです。", en:"I'm not feeling well."},
+      {ja:"頭が痛いです。", en:"I have a headache."},
+      {ja:"お腹が痛いです。", en:"I have a stomachache."},
+      {ja:"熱があります。", en:"I have a fever."},
+      {ja:"少し休みたいです。", en:"I'd like to rest for a while."},
+      {ja:"薬を持っていますか？", en:"Do you have any medicine?"},
+      {ja:"薬局はどこですか？", en:"Where is the pharmacy?"},
+      {ja:"病院に行きたいです。", en:"I want to go to the hospital."},
+      {ja:"救急車を呼んでください。", en:"Please call an ambulance."},
+      {ja:"警察を呼んでください。", en:"Please call the police."},
+      {ja:"助けてください！", en:"Help me, please!"},       
+    ],
+    words: [
+      {ja:"助け", en:"help"},
+      {ja:"緊急事態", en:"emergency"},
+      {ja:"警察", en:"police"},
+      {ja:"救急車", en:"ambulance"},
+      {ja:"消防署", en:"fire station"},
+      {ja:"病院", en:"hospital"},
+      {ja:"医者", en:"doctor"},
+      {ja:"看護師", en:"nurse"},
+      {ja:"薬局", en:"pharmacy"},
+      {ja:"事故", en:"accident"},
+      {ja:"火事", en:"fire"},
+      {ja:"けが", en:"injury"},
+      {ja:"痛み", en:"pain"},
+      {ja:"熱", en:"fever"},
+      {ja:"頭痛", en:"headache"},
+      {ja:"腹痛", en:"stomachache"},
+      {ja:"めまい", en:"dizziness"},
+      {ja:"アレルギー", en:"allergy"},
+      {ja:"薬", en:"medicine"},
+      {ja:"保険", en:"insurance"},
+      {ja:"パスポート", en:"passport"},
+      {ja:"財布", en:"wallet"},
+      {ja:"盗難", en:"theft"},
+      {ja:"紛失", en:"loss"},
+      {ja:"頭", en:"head"},
+      {ja:"顔", en:"face"},
+      {ja:"目", en:"eye"},
+      {ja:"耳", en:"ear"},
+      {ja:"鼻", en:"nose"},
+      {ja:"口", en:"mouth"},
+      {ja:"歯", en:"tooth"},
+      {ja:"喉", en:"throat"},
+      {ja:"首", en:"neck"},
+      {ja:"肩", en:"shoulder"},
+      {ja:"腕", en:"arm"},
+      {ja:"手", en:"hand"},
+      {ja:"指", en:"finger"},
+      {ja:"胸", en:"chest"},
+      {ja:"お腹", en:"stomach"},
+      {ja:"背中", en:"back"},
+      {ja:"足", en:"leg"},
+      {ja:"膝", en:"knee"},
+      {ja:"足首", en:"ankle"},
+      {ja:"皮膚", en:"skin"},
+      {ja:"痛い", en:"painful"},
+      {ja:"気分が悪い", en:"sick"},
+      {ja:"疲れた", en:"tired"},
+      {ja:"めまいがする", en:"dizzy"},
+      {ja:"吐き気がする", en:"nauseous"},
+      {ja:"寒気がする", en:"chills"},
+      {ja:"受付", en:"reception"},
+      {ja:"案内所", en:"information desk"},
+      {ja:"待合室", en:"waiting room"},
+      {ja:"救急外来", en:"emergency room"},
+      {ja:"診察室", en:"examination room"},
+      {ja:"車椅子", en:"wheelchair"},
+      {ja:"松葉杖", en:"crutches"},
+      {ja:"包帯", en:"bandage"},
+      {ja:"絆創膏", en:"band-aid"},
+      {ja:"消毒液", en:"disinfectant"},
+      {ja:"体温計", en:"thermometer"},
+      {ja:"連絡先", en:"contact information"},
+    ],
+    conversations: [
+      {
+        scene: "道に迷ったとき",
+        question: "Are you lost?",
+        questionJa: "道に迷いましたか？",
+        answer: "Yes, I am.",
+        answerJa: "はい、迷いました。"
+      },
+      {
+        scene: "道に迷ったとき",
+        question: "Where do you want to go?",
+        questionJa: "どこに行きたいですか？",
+        answer: "I want to go to the station.",
+        answerJa: "駅に行きたいです。"
+      },
+      {
+        scene: "忘れ物・紛失",
+        question: "What did you lose?",
+        questionJa: "何をなくしましたか？",
+        answer: "I lost my wallet.",
+        answerJa: "財布をなくしました。"
+      },
+      {
+        scene: "忘れ物・紛失",
+        question: "When did you last see it?",
+        questionJa: "最後にそれを見たのはいつですか？",
+        answer: "About an hour ago.",
+        answerJa: "1時間ほど前です。"
+      },
+      {
+        scene: "体調",
+        question: "Are you feeling okay?",
+        questionJa: "気分は大丈夫ですか？",
+        answer: "No, I feel sick.",
+        answerJa: "いいえ、気分が悪いです。"
+      },
+      {
+        scene: "体調",
+        question: "What's wrong?",
+        questionJa: "どうしましたか？",
+        answer: "I have a headache.",
+        answerJa: "頭が痛いです。"
+      },
+      {
+        scene: "体調",
+        question: "Do you need a doctor?",
+        questionJa: "医者が必要ですか？",
+        answer: "Yes, please.",
+        answerJa: "はい、お願いします。"
+      },
+      {
+        scene: "体調",
+        question: "Are you allergic to anything?",
+        questionJa: "何かアレルギーはありますか？",
+        answer: "I'm allergic to nuts.",
+        answerJa: "ナッツアレルギーがあります。"
+      },
+    ]
+  },
+  home: {
+    phrases: [
+      {ja:"お久しぶりです。", en:"It's been a long time."},
+      {ja:"しばらくの間お世話になります。", en:"Thank you for having me."},
+      {ja:"お待ちしていました。", en:"We've been waiting for you."},
+      {ja:"会いたかったです。", en:"I've missed you."},
+      {ja:"忙しいですか？", en:"Are you busy?"},
+      {ja:"とても興味があります。", en:"I'm very interested in that."},
+      {ja:"会えなかったの？", en:"Couldn't you meet them?"},
+      {ja:"誰もいなかった？", en:"Wasn't anyone there?"},
+      {ja:"今何かしているところです。", en:"I'm doing something right now."},
+      {ja:"荷物はこれだけですか？", en:"Is this all your luggage?"},
+      {ja:"ここに置きましょう。", en:"Let's put it here."},
+      {ja:"電話した方がいいですか？", en:"Should I call them?"},
+      {ja:"間に合いそうです。", en:"I think we'll make it in time."},
+      {ja:"間に合わないかもしれません。", en:"We might not make it in time."},
+      {ja:"今から帰ります。", en:"I'm going home now."},
+      {ja:"今から出かけます。", en:"I'm going out now."},
+      {ja:"3階に上がりますね。", en:"I'm going up to the third floor."},
+      {ja:"2階に下りますね。", en:"I'm going down to the second floor."},
+      {ja:"何か食べましょう。", en:"Let's get something to eat."},
+      {ja:"忘れ物はないですか？", en:"Do you have everything?"},
+      {ja:"ゆっくり寝られましたか？", en:"Did you sleep well?"},
+      {ja:"今の体調はいいですか？", en:"Are you feeling okay?"},
+      {ja:"好きな食べ物はなんですか？", en:"What's your favorite food?"},
+      {ja:"好きな飲み物はなんですか？", en:"What's your favorite drink?"},
+      {ja:"嫌いな食べ物はありますか？", en:"Is there any food you don't like?"},
+      {ja:"今日はどこに出かけましたか？", en:"Where did you go today?"},
+      {ja:"どこが楽しかったですか？", en:"What did you enjoy the most?"},
+      {ja:"何をして遊びたいですか？", en:"What would you like to do for fun?"},
+      {ja:"食事の量は足りていますか？", en:"Is that enough food for you?"},
+      {ja:"おかわりはいかがですか？", en:"Would you like some more?"},
+      {ja:"順番にお風呂に入りましょう。", en:"Let's take turns using the bath."},
+      {ja:"他に何か食べたいものはありますか？", en:"Would you like anything else to eat?"},
+      {ja:"そろそろ寝ましょうか。", en:"Shall we go to bed soon?"},
+      {ja:"明日の朝は7時起きです。", en:"We have to get up at seven tomorrow morning."},
+      {ja:"出かける準備はできましたか？", en:"Are you ready to go out?"},
+      {ja:"また遊びに来てください。待っています。", en:"Please come and visit us again. We'll be waiting for you."},
+      {ja:"疲れていませんか？", en:"Are you tired?"},
+      {ja:"何か必要なものはありますか？", en:"Do you need anything?"},
+      {ja:"お水はいかがですか？", en:"Would you like some water?"},
+      {ja:"お腹はいっぱいですか？", en:"Are you full?"},
+      {ja:"お風呂の準備ができました。", en:"The bath is ready."},
+      {ja:"タオルはこちらにあります。", en:"The towels are over here."},
+      {ja:"洗濯物を出してください。", en:"Please give me your laundry."},
+      {ja:"一緒に洗濯しましょうか？", en:"Shall I do the laundry?"},
+      {ja:"これは洗濯機で洗えますか？", en:"Can this go in the washing machine?"},
+      {ja:"洗濯機の使い方は分かりますか？", en:"Do you know how to use the washing machine?"},
+      {ja:"洗濯が終わりました。", en:"The laundry is done."},
+      {ja:"洗濯物を干しましょう。", en:"Let's hang out the laundry."},
+      {ja:"洗濯物を取り込んでください。", en:"Please bring in the laundry."},
+      {ja:"洗濯物をたたみましょう。", en:"Let's fold the laundry."},
+      {ja:"何時に出発しましょうか？", en:"What time shall we leave?"},
+      {ja:"明日は何をしたいですか？", en:"What would you like to do tomorrow?"},
+      {ja:"楽しんできてくださいね。", en:"Have a good time!"},
+      {ja:"気をつけて行ってきてください。", en:"Take care!"}       
+    ],
+    words: [
+      {ja:"家", en:"house"},
+      {ja:"家（住まい）", en:"home"},
+      {ja:"部屋", en:"room"},
+      {ja:"リビング", en:"living room"},
+      {ja:"寝室", en:"bedroom"},
+      {ja:"玄関", en:"entrance"},
+      {ja:"廊下", en:"hallway"},
+      {ja:"階段", en:"stairs"},
+      {ja:"ベランダ", en:"balcony"},
+      {ja:"庭", en:"garden"},
+      {ja:"天井", en:"ceiling"},
+      {ja:"床", en:"floor"},
+      {ja:"壁", en:"wall"},
+      {ja:"電気", en:"light"},
+      {ja:"エアコン", en:"air conditioner"},
+      {ja:"暖房", en:"heater"},
+      {ja:"冷房", en:"air conditioning"},
+      {ja:"皿", en:"plate"},
+      {ja:"お椀", en:"bowl"},
+      {ja:"コップ", en:"glass"},
+      {ja:"マグカップ", en:"mug"},
+      {ja:"箸", en:"chopsticks"},
+      {ja:"水道", en:"faucet"},
+      {ja:"蛇口", en:"tap"},
+      {ja:"シャンプー", en:"shampoo"},
+      {ja:"リンス", en:"conditioner"},
+      {ja:"ボディソープ", en:"body wash"},
+      {ja:"歯ブラシ", en:"toothbrush"},
+      {ja:"歯磨き粉", en:"toothpaste"},
+      {ja:"くし", en:"comb"},
+      {ja:"ブラシ", en:"brush"},
+      {ja:"化粧品", en:"makeup"},
+      {ja:"鏡", en:"mirror"},
+      {ja:"枕", en:"pillow"},
+      {ja:"毛布", en:"blanket"},
+      {ja:"冷蔵庫", en:"refrigerator"},
+      {ja:"電子レンジ", en:"microwave"},
+      {ja:"オーブン", en:"oven"},
+      {ja:"炊飯器", en:"rice cooker"},
+      {ja:"洗濯機", en:"washing machine"},
+      {ja:"掃除機", en:"vacuum cleaner"},
+      {ja:"ドライヤー", en:"hair dryer"},
+      {ja:"コンセント", en:"outlet"},
+      {ja:"リモコン", en:"remote control"},
+      {ja:"充電器", en:"charger"},
+      {ja:"服", en:"clothes"},
+      {ja:"シャツ", en:"shirt"},
+      {ja:"ズボン", en:"pants"},
+      {ja:"ワンピース", en:"dress"},
+      {ja:"上着", en:"jacket"},
+      {ja:"コート", en:"coat"},
+      {ja:"靴下", en:"socks"},
+      {ja:"靴", en:"shoes"},
+      {ja:"スリッパ", en:"slippers"},
+      {ja:"帽子", en:"hat"},
+      {ja:"眼鏡", en:"glasses"},
+      {ja:"時計（腕時計）", en:"watch"},
+      {ja:"財布", en:"wallet"},
+      {ja:"服を着る", en:"get dressed"},
+      {ja:"服を脱ぐ", en:"take off my clothes"},
+      {ja:"料理する", en:"cook"},
+      {ja:"食事する", en:"have a meal"},
+      {ja:"お茶を飲む", en:"drink tea"},
+      {ja:"テレビを見る", en:"watch TV"},
+      {ja:"本を読む", en:"read a book"},
+      {ja:"音楽を聴く", en:"listen to music"},
+      {ja:"掃除する", en:"clean"},
+      {ja:"洗濯する", en:"do the laundry"},
+      {ja:"皿を洗う", en:"wash the dishes"},
+      {ja:"ゴミを出す", en:"take out the trash"},
+      {ja:"窓を開ける", en:"open the window"},
+      {ja:"窓を閉める", en:"close the window"},
+      {ja:"電気をつける", en:"turn on the light"},
+      {ja:"電気を消す", en:"turn off the light"},
+      {ja:"鍵をかける", en:"lock the door"},
+      {ja:"鍵を開ける", en:"unlock the door"},
+    ],
+    conversations: [
+      {
+        scene: "宿泊先",
+        question: "Is this your first time here?",
+        questionJa: "ここに来るのは初めてですか？",
+        answer: "Yes, it is.",
+        answerJa: "はい、初めてです。"
+      },
+      {
+        scene: "宿泊先",
+        question: "What time do you wake up?",
+        questionJa: "何時に起きますか？",
+        answer: "I wake up at seven.",
+        answerJa: "7時に起きます。"
+      },
+      {
+        scene: "宿泊先",
+        question: "Would you like some coffee?",
+        questionJa: "コーヒーはいかがですか？",
+        answer: "Yes, please.",
+        answerJa: "はい、お願いします。"
+      },
+      {
+        scene: "宿泊先",
+        question: "Are you hungry?",
+        questionJa: "お腹は空いていますか？",
+        answer: "Yes, a little.",
+        answerJa: "はい、少し。"
+      },
+      {
+        scene: "宿泊先",
+        question: "What would you like for breakfast?",
+        questionJa: "朝食は何がいいですか？",
+        answer: "I'd like some bread.",
+        answerJa: "パンが食べたいです。"
+      },
+      {
+        scene: "宿泊先",
+        question: "Is the room comfortable?",
+        questionJa: "部屋は快適ですか？",
+        answer: "Yes, it's very comfortable.",
+        answerJa: "はい、とても快適です。"
+      },
+      {
+        scene: "宿泊先",
+        question: "Do you need a towel?",
+        questionJa: "タオルは必要ですか？",
+        answer: "Yes, please.",
+        answerJa: "はい、お願いします。"
+      },
+      {
+        scene: "宿泊先",
+        question: "Is everything okay?",
+        questionJa: "何か問題はありませんか？",
+        answer: "Yes, everything is fine.",
+        answerJa: "はい、すべて大丈夫です。"
+      },
+      {
+        scene: "家事",
+        question: "Can you help me cook?",
+        questionJa: "料理を手伝ってくれますか？",
+        answer: "Sure, no problem.",
+        answerJa: "もちろん、大丈夫です。"
+      },
+      {
+        scene: "家事",
+        question: "Where should I put this?",
+        questionJa: "これはどこに置けばいいですか？",
+        answer: "Put it on the table.",
+        answerJa: "テーブルの上に置いてください。"
+      },
+      {
+        scene: "宿泊先",
+        question: "What time should we leave?",
+        questionJa: "何時に出発しましょうか？",
+        answer: "Let's leave at eight.",
+        answerJa: "8時に出発しましょう。"
+      }
+    ]
+  }
 };
 
-const categoryNames = {airport:"空港・飛行機", town:"街で使う英語", chat:"雑談・自己紹介", help:"困ったとき"};
-const categoryOrder = ["airport", "town", "chat", "help"];
+const categoryNames = {airport:"空港・飛行機", town:"街で使う英語", chat:"雑談・自己紹介", help:"困ったとき", home:"おうちでのおもてなし"};
+const categoryOrder = ["airport", "town", "chat", "help", "home"];
 const PRACTICE_TIME = 4000;
+const WORD_TIME = 2000;
+const RESPONSE_TIME = 3000;
 const BETWEEN_LANGUAGE_TIME = 500;
 const $ = id => document.getElementById(id);
+
 let category = "airport";
-let mode = "phrase"; // phrase = 1セクションの発話練習、listen = 4セクション通し聞き
+let mode = "phrase"; // phrase / word / conversation / listen
 let current = 0;
 let isPlaying = false;
 let runId = 0;
 let practiceTimer = null;
 let allMode = false;
 let allCategoryIndex = 0;
+let allListenType = "phrases";
 
-function currentList() { return lessons[category]; }
+function currentList() {
+  if (mode === "word") return lessons[category].words || [];
+  if (mode === "conversation") return lessons[category].conversations || [];
+  return lessons[category].phrases || [];
+}
 function stopAudio() {
   clearTimeout(practiceTimer);
   if (window.speechSynthesis) speechSynthesis.cancel();
@@ -154,13 +1300,12 @@ function speak(text, language, onEnd) {
     isPlaying = false;
     return;
   }
-  // 古い音声を止めてから、新しい音声を再生します。
   speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = language;
   utterance.rate = 0.82;
   utterance.onend = () => { if (onEnd) onEnd(); };
-  utterance.onerror = (event) => {
+  utterance.onerror = () => {
     if (isPlaying) {
       isPlaying = false;
       $("status").textContent = "音声を再生できませんでした。もう一度スタートしてください。";
@@ -170,11 +1315,17 @@ function speak(text, language, onEnd) {
 }
 function updateScreen() {
   const list = currentList();
-  current = Math.max(0, Math.min(current, list.length - 1));
+  current = Math.max(0, Math.min(current, Math.max(0, list.length - 1)));
   const item = list[current];
-  $("japanese").textContent = item.ja;
-  $("english").textContent = item.en;
-  $("categoryLabel").textContent = categoryNames[category];
+  if (!item) return;
+  if (mode === "conversation") {
+    $("japanese").textContent = `質問：${item.questionJa}\n回答例：${item.answerJa}`;
+    $("english").textContent = `Q：${item.question}\nA：${item.answer}`;
+  } else {
+    $("japanese").textContent = item.ja;
+    $("english").textContent = item.en;
+  }
+  $("categoryLabel").textContent = `${categoryNames[category]}｜${modeNames[mode]}`;
   $("progress").textContent = `${current + 1} / ${list.length}　｜　${categoryNames[category]}`;
 }
 function stopPractice(showMessage = true) {
@@ -187,23 +1338,22 @@ function stopPractice(showMessage = true) {
 function startPractice() {
   if (mode === "listen") { startAllListening(); return; }
   stopPractice(false);
-  mode = "phrase";
-  setModeButtons();
   current = 0;
-  allMode = false;
   isPlaying = true;
   const id = ++runId;
   updateScreen();
-  playPhrase(id);
+  if (mode === "word") playWord(id);
+  else if (mode === "conversation") playConversation(id);
+  else playPhrase(id);
+}
+function finishSection(message = "🎉 このセクションは終了です！") {
+  isPlaying = false;
+  $("status").textContent = message;
 }
 function playPhrase(id) {
   if (!isPlaying || id !== runId) return;
   const list = currentList();
-  if (current >= list.length) {
-    isPlaying = false;
-    $("status").textContent = "🎉 このセクションは終了です！";
-    return;
-  }
+  if (current >= list.length) return finishSection();
   const item = list[current];
   updateScreen();
   $("status").textContent = "① 日本語を聞いています…";
@@ -224,15 +1374,94 @@ function playPhrase(id) {
             practiceTimer = setTimeout(() => {
               if (!isPlaying || id !== runId) return;
               current++;
-              if (current >= list.length) {
-                isPlaying = false;
-                $("status").textContent = "🎉 このセクションは終了です！";
-                return;
-              }
               playPhrase(id);
             }, PRACTICE_TIME);
           });
         }, PRACTICE_TIME);
+      });
+    }, BETWEEN_LANGUAGE_TIME);
+  });
+}
+function playWord(id) {
+  if (!isPlaying || id !== runId) return;
+  const list = currentList();
+  if (current >= list.length) return finishSection("🎉 単語練習は終了です！");
+  const item = list[current];
+  updateScreen();
+  $("status").textContent = "① 日本語を聞いています…";
+  speak(item.ja, "ja-JP", () => {
+    if (!isPlaying || id !== runId) return;
+    practiceTimer = setTimeout(() => {
+      if (!isPlaying || id !== runId) return;
+      $("status").textContent = "② 英語のお手本を聞いています…";
+      speak(item.en, "en-US", () => {
+        if (!isPlaying || id !== runId) return;
+        $("status").textContent = "③ 英語を言ってみましょう！（2秒）";
+        practiceTimer = setTimeout(() => {
+          if (!isPlaying || id !== runId) return;
+          current++;
+          playWord(id);
+        }, WORD_TIME);
+      });
+    }, BETWEEN_LANGUAGE_TIME);
+  });
+}
+function playConversation(id) {
+  if (!isPlaying || id !== runId) return;
+  const list = currentList();
+  if (current >= list.length) return finishSection("🎉 会話練習は終了です！");
+  const item = list[current];
+  updateScreen();
+
+  // 場面の説明を聞く
+  $("status").textContent = `場面：${item.scene}`;
+  speak(item.scene, "ja-JP", () => {
+    if (!isPlaying || id !== runId) return;
+
+    // 場面の説明と質問の日本語の間を0.5秒あける
+    practiceTimer = setTimeout(() => {
+      if (!isPlaying || id !== runId) return;
+
+      $("status").textContent = "① 質問の日本語を聞いています…";
+      speak(item.questionJa, "ja-JP", () => {
+        if (!isPlaying || id !== runId) return;
+
+        $("status").textContent = "② 英語で質問してみましょう！（3秒）";
+        practiceTimer = setTimeout(() => {
+          if (!isPlaying || id !== runId) return;
+
+          $("status").textContent = "③ 英語の質問のお手本を聞いています…";
+          speak(item.question, "en-US", () => {
+            if (!isPlaying || id !== runId) return;
+
+            // 英語の質問と回答例の日本語の間を0.5秒あける
+            practiceTimer = setTimeout(() => {
+              if (!isPlaying || id !== runId) return;
+
+              $("status").textContent = "④ 回答例の日本語を聞いています…";
+              speak(item.answerJa, "ja-JP", () => {
+                if (!isPlaying || id !== runId) return;
+
+                $("status").textContent = "⑤ 英語で答えてみましょう！（3秒）";
+                practiceTimer = setTimeout(() => {
+                  if (!isPlaying || id !== runId) return;
+
+                  $("status").textContent = "⑥ 英語の回答のお手本を聞いています…";
+                  speak(item.answer, "en-US", () => {
+                    if (!isPlaying || id !== runId) return;
+
+                    // 次の会話に移る前に0.5秒あける
+                    practiceTimer = setTimeout(() => {
+                      if (!isPlaying || id !== runId) return;
+                      current++;
+                      playConversation(id);
+                    }, BETWEEN_LANGUAGE_TIME);
+                  });
+                }, RESPONSE_TIME);
+              });
+            }, BETWEEN_LANGUAGE_TIME);
+          });
+        }, RESPONSE_TIME);
       });
     }, BETWEEN_LANGUAGE_TIME);
   });
@@ -244,40 +1473,76 @@ function startAllListening() {
   allMode = true;
   isPlaying = true;
   allCategoryIndex = 0;
+  allListenType = "phrases";
   current = 0;
   const id = ++runId;
   playAllItem(id);
 }
 function playAllItem(id) {
   if (!isPlaying || id !== runId || !allMode) return;
+
   if (allCategoryIndex >= categoryOrder.length) {
     isPlaying = false;
     allMode = false;
-    $("status").textContent = "🎉 4セクションすべて終了しました！お疲れさまでした。";
-    $("progress").textContent = "全4セクション終了";
+    $("status").textContent = "🎉 5セクションのフレーズ・単語をすべて再生しました！お疲れさまでした。";
+    $("progress").textContent = "全5セクション終了";
     return;
   }
+
   category = categoryOrder[allCategoryIndex];
-  const list = lessons[category];
+  const section = lessons[category];
+  const list = allListenType === "phrases" ? (section.phrases || []) : (section.words || []);
+
+  // そのカテゴリーのフレーズが終わったら、同じカテゴリーの単語へ進む。
+  // 単語も終わったら次のカテゴリーへ進む。
   if (current >= list.length) {
+    if (allListenType === "phrases") {
+      allListenType = "words";
+      current = 0;
+      playAllItem(id);
+      return;
+    }
     allCategoryIndex++;
+    allListenType = "phrases";
     current = 0;
     playAllItem(id);
     return;
   }
+
   const item = list[current];
-  document.querySelectorAll("[data-category]").forEach(b => b.classList.toggle("selected", b.dataset.category === category));
-  updateScreen();
-  $("status").textContent = `通し聞き中：${categoryNames[category]}（日本語）`;
+  document.querySelectorAll("[data-category]").forEach(button => {
+    button.classList.toggle("selected", button.dataset.category === category);
+  });
+
+  $("japanese").textContent = item.ja;
+  $("english").textContent = item.en;
+  $("categoryLabel").textContent =
+    `${categoryNames[category]}｜${allListenType === "phrases" ? "フレーズ" : "単語"}（通し聞き）`;
+  $("progress").textContent =
+    `${current + 1} / ${list.length}　｜　${categoryNames[category]}｜${allListenType === "phrases" ? "フレーズ" : "単語"}`;
+
+  $("status").textContent =
+    `通し聞き中：${categoryNames[category]}の${allListenType === "phrases" ? "フレーズ" : "単語"}（日本語）`;
+
   speak(item.ja, "ja-JP", () => {
     if (!isPlaying || id !== runId) return;
+
     practiceTimer = setTimeout(() => {
       if (!isPlaying || id !== runId) return;
-      $("status").textContent = `通し聞き中：${categoryNames[category]}（英語）`;
+
+      $("status").textContent =
+        `通し聞き中：${categoryNames[category]}の${allListenType === "phrases" ? "フレーズ" : "単語"}（英語）`;
+
       speak(item.en, "en-US", () => {
         if (!isPlaying || id !== runId) return;
-        const wait = $("shadowPause").checked ? PRACTICE_TIME : 350;
-        $("status").textContent = $("shadowPause").checked ? "英語をまねして言ってみましょう！（4秒）" : "次のフレーズへ…";
+
+        // フレーズは4秒、単語は2秒の発話時間。チェックを外すと短い間隔で次へ。
+        const defaultWait = allListenType === "phrases" ? PRACTICE_TIME : WORD_TIME;
+        const wait = $("shadowPause").checked ? defaultWait : 350;
+        $("status").textContent = $("shadowPause").checked
+          ? `英語を言ってみましょう！（${defaultWait / 1000}秒）`
+          : "次へ…";
+
         practiceTimer = setTimeout(() => {
           if (!isPlaying || id !== runId) return;
           current++;
@@ -290,25 +1555,37 @@ function playAllItem(id) {
 function replayEnglish() {
   stopPractice(false);
   const item = currentList()[current];
+  if (!item) return;
   $("status").textContent = "英語を聞いてみましょう。";
-  speak(item.en, "en-US");
+  if (mode === "conversation") {
+    speak(item.question, "en-US", () => speak(item.answer, "en-US"));
+  } else {
+    speak(item.en, "en-US");
+  }
 }
 function move(direction) {
   stopPractice(false);
   const list = currentList();
+  if (!list.length) return;
   current = (current + direction + list.length) % list.length;
   updateScreen();
   $("status").textContent = "準備できました。スタートを押して練習しましょう！";
 }
+const modeNames = {phrase:"フレーズ練習", word:"単語練習", conversation:"会話練習", listen:"通し聞き"};
 function setModeButtons() {
-  $("phraseMode").classList.toggle("selected", mode === "phrase");
-  $("phraseMode").classList.toggle("secondary", mode !== "phrase");
-  $("listenMode").classList.toggle("selected", mode === "listen");
-  $("listenMode").classList.toggle("secondary", mode !== "listen");
-  $("modeDescription").textContent = mode === "phrase"
-    ? "選んだセクションのフレーズを、日本語 → 英語 → 4秒の発話時間 → 英語 → 4秒の発話時間、の順に練習します。"
-    : "スタートすると4セクションすべてを順番に連続再生します。下のチェックで発話時間の有無を選べます。";
-  $("startButton").textContent = mode === "phrase" ? "▶ このセクションを練習" : "▶ 4セクションを通しで再生";
+  const ids = {phrase:"phraseMode", word:"wordMode", conversation:"conversationMode", listen:"listenMode"};
+  Object.entries(ids).forEach(([key, id]) => {
+    $(id).classList.toggle("selected", mode === key);
+    $(id).classList.toggle("secondary", mode !== key);
+  });
+  const descriptions = {
+    phrase:"日本語 → 英語 → 4秒の発話時間 → 英語 → 4秒の発話時間、の順に練習します。",
+    word:"日本語 → 英語 → 2秒の発話時間、の順に単語を練習します。",
+    conversation:"場面と質問の意味を聞いたあと、英語の質問に3秒で答え、回答例を聞いて3秒まねします。",
+    listen:"スタートすると各セクションのフレーズと単語を順番に再生し、5セクションすべてを通して練習できます。発話時間の有無を選べます。"
+  };
+  $("modeDescription").textContent = descriptions[mode];
+  $("startButton").textContent = mode === "listen" ? "▶ 5セクションを通しで再生" : `▶ ${modeNames[mode]}を開始`;
 }
 document.querySelectorAll("[data-category]").forEach(button => button.addEventListener("click", () => {
   stopPractice(false);
@@ -318,17 +1595,16 @@ document.querySelectorAll("[data-category]").forEach(button => button.addEventLi
   updateScreen();
   $("status").textContent = `${categoryNames[category]}を選びました。練習を始めましょう！`;
 }));
-$("phraseMode").addEventListener("click", () => {
-  stopPractice(false); mode = "phrase"; setModeButtons(); updateScreen();
-});
-$("listenMode").addEventListener("click", () => {
-  stopPractice(false); mode = "listen"; setModeButtons(); updateScreen();
-});
+$("phraseMode").addEventListener("click", () => { stopPractice(false); mode = "phrase"; current = 0; setModeButtons(); updateScreen(); });
+$("wordMode").addEventListener("click", () => { stopPractice(false); mode = "word"; current = 0; setModeButtons(); updateScreen(); });
+$("conversationMode").addEventListener("click", () => { stopPractice(false); mode = "conversation"; current = 0; setModeButtons(); updateScreen(); });
+$("listenMode").addEventListener("click", () => { stopPractice(false); mode = "listen"; current = 0; setModeButtons(); updateScreen(); });
 $("startButton").addEventListener("click", startPractice);
 $("stopButton").addEventListener("click", () => stopPractice(true));
 $("replayButton").addEventListener("click", replayEnglish);
 $("prevButton").addEventListener("click", () => move(-1));
 $("nextButton").addEventListener("click", () => move(1));
+setModeButtons();
 updateScreen();
 </script>
 </body>
